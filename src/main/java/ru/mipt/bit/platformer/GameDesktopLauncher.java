@@ -4,6 +4,7 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+import ru.mipt.bit.platformer.level.LevelMapAssets;
 import ru.mipt.bit.platformer.obstacle.Obstacle;
 import ru.mipt.bit.platformer.tank.Tank;
 import ru.mipt.bit.platformer.tank.TankKeyboardController;
@@ -12,15 +13,17 @@ import ru.mipt.bit.platformer.world.GameWorldRenderer;
 
 public class GameDesktopLauncher extends ApplicationAdapter {
     private GameWorld world;
+    private LevelMapAssets levelMapAssets;
     private GameWorldRenderer worldRenderer;
     private TankKeyboardController playerKeyboardController;
 
     @Override
     public void create() {
+        levelMapAssets = new LevelMapAssets("level.tmx");
         Tank playerTank = new Tank(1, 1);
-        world = new GameWorld(playerTank, new Obstacle(1, 3));
+        world = new GameWorld(playerTank, new Obstacle(1, 3), levelMapAssets.getLevelMap());
         playerKeyboardController = new TankKeyboardController(playerTank, world::canMoveTo);
-        worldRenderer = new GameWorldRenderer(world, "level.tmx");
+        worldRenderer = new GameWorldRenderer(world, levelMapAssets);
     }
 
     @Override
@@ -33,6 +36,7 @@ public class GameDesktopLauncher extends ApplicationAdapter {
     @Override
     public void dispose() {
         worldRenderer.dispose();
+        levelMapAssets.dispose();
     }
 
     public static void main(String[] args) {

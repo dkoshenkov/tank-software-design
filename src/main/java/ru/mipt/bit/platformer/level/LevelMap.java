@@ -1,29 +1,18 @@
 package ru.mipt.bit.platformer.level;
 
-import com.badlogic.gdx.maps.tiled.TiledMap;
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
-import com.badlogic.gdx.maps.tiled.TmxMapLoader;
-import com.badlogic.gdx.utils.Disposable;
+public final class LevelMap {
+    private final int width;
+    private final int height;
 
-public class LevelMap implements Disposable {
-    private final TiledMap tiledMap;
-    private final TiledMapTileLayer groundLayer;
-
-    public LevelMap(String pathToMap) {
-        tiledMap = new TmxMapLoader().load(pathToMap);
-        groundLayer = (TiledMapTileLayer) tiledMap.getLayers().get(0);
+    public LevelMap(int width, int height) {
+        if (width <= 0 || height <= 0) {
+            throw new IllegalArgumentException("Level dimensions must be positive");
+        }
+        this.width = width;
+        this.height = height;
     }
 
-    public TiledMapTileLayer getGroundLayer() {
-        return groundLayer;
-    }
-
-    public TiledMap getTiledMap() {
-        return tiledMap;
-    }
-
-    @Override
-    public void dispose() {
-        tiledMap.dispose();
+    public boolean containsTile(int tileX, int tileY) {
+        return tileX >= 0 && tileX < width && tileY >= 0 && tileY < height;
     }
 }
