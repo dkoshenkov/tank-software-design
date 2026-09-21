@@ -5,12 +5,6 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class LevelMapTest {
-    @Test public void keepsDimensionsInTiles() {
-        LevelMap level = new LevelMap(10, 8);
-        assertEquals(10, level.getWidth());
-        assertEquals(8, level.getHeight());
-    }
-
     @Test public void containsCornersButRejectsAllFourOutsideEdges() {
         LevelMap level = new LevelMap(3, 2);
         assertTrue(level.containsTile(0, 0));

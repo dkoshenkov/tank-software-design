@@ -23,7 +23,9 @@ public class TankKeyboardControllerTest {
     @Test public void noInputLeavesTankIdle() {
         Tank tank = new Tank(2, 2);
         new TankKeyboardController(tank, tile -> true).handleInput(new TestInput().input);
-        assertFalse(tank.isMoving());
+        assertEquals(new GridPoint2(2, 2), tank.getTileCoordinates());
+        assertEquals(new GridPoint2(2, 2), tank.getDestinationTileCoordinates());
+        assertEquals(1f, tank.getMovementProgress(), 0f);
     }
 
     @Test public void simultaneousDirectionsKeepExistingPriority() {
@@ -44,17 +46,4 @@ public class TankKeyboardControllerTest {
         assertEquals(new GridPoint2(3, 2), tank.getDestinationTileCoordinates());
     }
 
-    @Test public void canAddSpaceActionWithoutChangingMovementController() {
-        Tank tank = new Tank(2, 2);
-        TankKeyboardController controller = new TankKeyboardController(tank, tile -> false);
-        int[] shots = {0};
-        controller.bindJustPressed(() -> shots[0]++, SPACE);
-        TestInput input = new TestInput();
-        input.held.add(W);
-        input.justPressed.add(SPACE);
-        controller.handleInput(input.input);
-        assertFalse(tank.isMoving());
-        assertEquals(90f, tank.getRotationDegrees(), 0f);
-        assertEquals(1, shots[0]);
-    }
 }

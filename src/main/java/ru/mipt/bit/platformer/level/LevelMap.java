@@ -12,14 +12,6 @@ public final class LevelMap {
         this.height = height;
     }
 
-    public int getWidth() {
-        return width;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
     public boolean containsTile(int tileX, int tileY) {
         return tileX >= 0 && tileX < width && tileY >= 0 && tileY < height;
     }

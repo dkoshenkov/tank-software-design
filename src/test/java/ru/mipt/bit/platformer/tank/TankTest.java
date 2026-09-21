@@ -9,7 +9,6 @@ public class TankTest {
         Tank tank = new Tank(2, 3);
         assertEquals(new GridPoint2(2, 3), tank.getTileCoordinates());
         assertEquals(new GridPoint2(2, 3), tank.getDestinationTileCoordinates());
-        assertFalse(tank.isMoving());
         assertEquals(1f, tank.getMovementProgress(), 0f);
         assertEquals(0f, tank.getRotationDegrees(), 0f);
         tank.updateMovement(1f);
@@ -22,21 +21,20 @@ public class TankTest {
             assertEquals(new GridPoint2(2, 4), tile);
             return true;
         });
-        assertTrue(tank.isMoving());
         assertEquals(0f, tank.getMovementProgress(), 0f);
         assertEquals(new GridPoint2(2, 4), tank.getDestinationTileCoordinates());
         tank.updateMovement(0.2f);
         assertEquals(0.5f, tank.getMovementProgress(), 0.00001f);
         assertEquals(new GridPoint2(2, 3), tank.getTileCoordinates());
         tank.updateMovement(0.2f);
-        assertFalse(tank.isMoving());
+        assertEquals(1f, tank.getMovementProgress(), 0f);
         assertEquals(new GridPoint2(2, 4), tank.getTileCoordinates());
     }
 
     @Test public void blockedMoveTurnsTankButDoesNotStartMovement() {
         Tank tank = new Tank(2, 3);
         tank.tryMove(Direction.LEFT, tile -> false);
-        assertFalse(tank.isMoving());
+        assertEquals(1f, tank.getMovementProgress(), 0f);
         assertEquals(-180f, tank.getRotationDegrees(), 0f);
         assertEquals(new GridPoint2(2, 3), tank.getDestinationTileCoordinates());
         tank.updateMovement(1f);
@@ -60,7 +58,7 @@ public class TankTest {
         assertEquals(1f, tank.getMovementProgress(), 0f);
         assertEquals(new GridPoint2(3, 3), tank.getTileCoordinates());
         tank.tryMove(Direction.DOWN, tile -> true);
-        assertTrue(tank.isMoving());
+        assertEquals(0f, tank.getMovementProgress(), 0f);
         assertEquals(new GridPoint2(3, 2), tank.getDestinationTileCoordinates());
     }
 

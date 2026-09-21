@@ -13,22 +13,15 @@ public final class TilePositioning {
     }
 
     public void centerOnTile(Rectangle worldBounds, GridPoint2 tileCoordinates) {
-        worldBounds.setCenter(
-                tileCenterX(tileCoordinates), tileCenterY(tileCoordinates)
-        );
+        worldBounds.setCenter(tileCenterX(tileCoordinates), tileCenterY(tileCoordinates));
     }
 
     public void positionBetweenTiles(Rectangle worldBounds,
                                      GridPoint2 fromTileCoordinates, GridPoint2 toTileCoordinates,
                                      float progress, Interpolation interpolation) {
         worldBounds.setCenter(
-                interpolation.apply(
-                        tileCenterX(fromTileCoordinates),
-                        tileCenterX(toTileCoordinates), progress),
-                interpolation.apply(
-                        tileCenterY(fromTileCoordinates),
-                        tileCenterY(toTileCoordinates), progress)
-        );
+                interpolation.apply(tileCenterX(fromTileCoordinates), tileCenterX(toTileCoordinates), progress),
+                interpolation.apply(tileCenterY(fromTileCoordinates), tileCenterY(toTileCoordinates), progress));
     }
 
     private float tileCenterX(GridPoint2 tileCoordinates) {

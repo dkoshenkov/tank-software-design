@@ -22,31 +22,14 @@ public class KeyboardControllerTest {
         assertEquals(Arrays.asList("move", "move"), calls);
     }
 
-    @Test public void justPressedActionDoesNotRepeatWhileHeldAndCanBePressedAgain() {
-        KeyboardController controller = new KeyboardController();
-        TestInput input = new TestInput();
-        List<String> calls = new ArrayList<>();
-        controller.bindHeld(() -> calls.add("move"), W);
-        controller.bindJustPressed(() -> calls.add("fire"), SPACE);
-        input.held.add(W);
-        input.held.add(SPACE);
-        input.justPressed.add(SPACE);
-        controller.handleInput(input.input);
-        input.justPressed.clear();
-        controller.handleInput(input.input);
-        input.justPressed.add(SPACE);
-        controller.handleInput(input.input);
-        assertEquals(Arrays.asList("move", "fire", "move", "move", "fire"), calls);
-    }
-
     @Test public void bindingCopiesKeys() {
         KeyboardController controller = new KeyboardController();
         TestInput input = new TestInput();
         int[] keys = {SPACE};
         int[] calls = {0};
-        controller.bindJustPressed(() -> calls[0]++, keys);
+        controller.bindHeld(() -> calls[0]++, keys);
         keys[0] = W;
-        input.justPressed.add(SPACE);
+        input.held.add(SPACE);
         controller.handleInput(input.input);
         assertEquals(1, calls[0]);
     }

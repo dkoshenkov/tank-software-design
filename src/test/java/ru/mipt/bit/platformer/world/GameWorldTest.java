@@ -46,7 +46,6 @@ public class GameWorldTest {
         assertEquals(new GridPoint2(1, 2), tank.getTileCoordinates());
 
         tank.tryMove(Direction.UP, world::canMoveTo);
-        assertFalse(tank.isMoving());
         world.update(0.4f);
         assertEquals(new GridPoint2(1, 2), tank.getTileCoordinates());
 

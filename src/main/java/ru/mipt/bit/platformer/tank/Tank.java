@@ -41,7 +41,7 @@ public class Tank {
         }
     }
 
-    public boolean isMoving() {
+    private boolean isMoving() {
         return movementProgress < MOVEMENT_COMPLETE;
     }
 
