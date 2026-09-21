@@ -8,9 +8,9 @@ import com.badlogic.gdx.utils.Disposable;
 public class LevelMapRenderer implements Disposable {
     private final OrthogonalTiledMapRenderer renderer;
 
-    public LevelMapRenderer(Batch batch, LevelMap levelMap) {
-        TiledMapTileLayer groundLayer = levelMap.getGroundLayer();
-        renderer = new OrthogonalTiledMapRenderer(levelMap.getTiledMap(), batch);
+    public LevelMapRenderer(Batch batch, LevelMapAssets assets) {
+        TiledMapTileLayer groundLayer = assets.getGroundLayer();
+        renderer = new OrthogonalTiledMapRenderer(assets.getTiledMap(), batch);
         renderer.getViewBounds().set(0f, 0f,
                 groundLayer.getWidth() * groundLayer.getTileWidth(),
                 groundLayer.getHeight() * groundLayer.getTileHeight());

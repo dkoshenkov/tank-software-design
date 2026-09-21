@@ -4,7 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Disposable;
-import ru.mipt.bit.platformer.level.LevelMap;
+import ru.mipt.bit.platformer.level.LevelMapAssets;
 import ru.mipt.bit.platformer.level.LevelMapRenderer;
 import ru.mipt.bit.platformer.obstacle.ObstacleRenderer;
 import ru.mipt.bit.platformer.tank.TankRenderer;
@@ -14,18 +14,16 @@ import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
 public class GameWorldRenderer implements Disposable {
     private final GameWorld world;
     private final Batch batch;
-    private final LevelMap levelMap;
     private final LevelMapRenderer levelMapRenderer;
     private final TankRenderer tankRenderer;
     private final ObstacleRenderer obstacleRenderer;
 
-    public GameWorldRenderer(GameWorld world, String pathToMap) {
+    public GameWorldRenderer(GameWorld world, LevelMapAssets levelMapAssets) {
         this.world = world;
         batch = new SpriteBatch();
-        levelMap = new LevelMap(pathToMap);
-        levelMapRenderer = new LevelMapRenderer(batch, levelMap);
-        tankRenderer = new TankRenderer("images/tank_blue.png", levelMap.getGroundLayer());
-        obstacleRenderer = new ObstacleRenderer("images/greenTree.png", levelMap.getGroundLayer());
+        levelMapRenderer = new LevelMapRenderer(batch, levelMapAssets);
+        tankRenderer = new TankRenderer("images/tank_blue.png", levelMapAssets.getGroundLayer());
+        obstacleRenderer = new ObstacleRenderer("images/greenTree.png", levelMapAssets.getGroundLayer());
     }
 
     public void render() {
@@ -44,7 +42,6 @@ public class GameWorldRenderer implements Disposable {
         tankRenderer.dispose();
         obstacleRenderer.dispose();
         levelMapRenderer.dispose();
-        levelMap.dispose();
         batch.dispose();
     }
 }
