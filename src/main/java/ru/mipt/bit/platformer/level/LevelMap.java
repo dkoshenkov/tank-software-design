@@ -1,6 +1,9 @@
 package ru.mipt.bit.platformer.level;
 
-public final class LevelMap {
+import com.badlogic.gdx.math.GridPoint2;
+import ru.mipt.bit.platformer.model.TileBounds;
+
+public final class LevelMap implements TileBounds {
     private final int width;
     private final int height;
 
@@ -12,7 +15,9 @@ public final class LevelMap {
         this.height = height;
     }
 
-    public boolean containsTile(int tileX, int tileY) {
-        return tileX >= 0 && tileX < width && tileY >= 0 && tileY < height;
+    @Override
+    public boolean containsTile(GridPoint2 tileCoordinates) {
+        return tileCoordinates.x >= 0 && tileCoordinates.x < width
+                && tileCoordinates.y >= 0 && tileCoordinates.y < height;
     }
 }

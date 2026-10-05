@@ -8,16 +8,19 @@ import com.badlogic.gdx.utils.Disposable;
 public class LevelMapAssets implements Disposable {
     private final TiledMap tiledMap;
     private final TiledMapTileLayer groundLayer;
-    private final LevelMap levelMap;
 
     public LevelMapAssets(String pathToMap) {
         tiledMap = new TmxMapLoader().load(pathToMap);
-        groundLayer = (TiledMapTileLayer) tiledMap.getLayers().get(0);
-        levelMap = new LevelMap(groundLayer.getWidth(), groundLayer.getHeight());
-    }
-
-    public LevelMap getLevelMap() {
-        return levelMap;
+        try {
+            groundLayer = (TiledMapTileLayer) tiledMap.getLayers().get(0);
+        } catch (RuntimeException | Error failure) {
+            try {
+                tiledMap.dispose();
+            } catch (RuntimeException | Error disposeFailure) {
+                failure.addSuppressed(disposeFailure);
+            }
+            throw failure;
+        }
     }
 
     public TiledMapTileLayer getGroundLayer() {

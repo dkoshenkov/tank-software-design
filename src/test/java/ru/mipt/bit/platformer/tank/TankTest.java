@@ -11,7 +11,7 @@ public class TankTest {
         assertEquals(new GridPoint2(2, 3), tank.getDestinationTileCoordinates());
         assertEquals(1f, tank.getMovementProgress(), 0f);
         assertEquals(0f, tank.getRotationDegrees(), 0f);
-        tank.updateMovement(1f);
+        tank.update(1f);
         assertEquals(new GridPoint2(2, 3), tank.getTileCoordinates());
     }
 
@@ -23,10 +23,10 @@ public class TankTest {
         });
         assertEquals(0f, tank.getMovementProgress(), 0f);
         assertEquals(new GridPoint2(2, 4), tank.getDestinationTileCoordinates());
-        tank.updateMovement(0.2f);
+        tank.update(0.2f);
         assertEquals(0.5f, tank.getMovementProgress(), 0.00001f);
         assertEquals(new GridPoint2(2, 3), tank.getTileCoordinates());
-        tank.updateMovement(0.2f);
+        tank.update(0.2f);
         assertEquals(1f, tank.getMovementProgress(), 0f);
         assertEquals(new GridPoint2(2, 4), tank.getTileCoordinates());
     }
@@ -37,14 +37,14 @@ public class TankTest {
         assertEquals(1f, tank.getMovementProgress(), 0f);
         assertEquals(-180f, tank.getRotationDegrees(), 0f);
         assertEquals(new GridPoint2(2, 3), tank.getDestinationTileCoordinates());
-        tank.updateMovement(1f);
+        tank.update(1f);
         assertEquals(new GridPoint2(2, 3), tank.getTileCoordinates());
     }
 
     @Test public void ignoresNewCommandsWhileMoving() {
         Tank tank = new Tank(2, 3);
         tank.tryMove(Direction.UP, tile -> true);
-        tank.updateMovement(0.1f);
+        tank.update(0.1f);
         tank.tryMove(Direction.LEFT, tile -> { fail("Must not check a new move while moving"); return true; });
         assertEquals(90f, tank.getRotationDegrees(), 0f);
         assertEquals(new GridPoint2(2, 4), tank.getDestinationTileCoordinates());
@@ -54,7 +54,7 @@ public class TankTest {
     @Test public void largeDeltaCompletesExactlyOneMoveAndAllowsNextMove() {
         Tank tank = new Tank(2, 3);
         tank.tryMove(Direction.RIGHT, tile -> true);
-        tank.updateMovement(10f);
+        tank.update(10f);
         assertEquals(1f, tank.getMovementProgress(), 0f);
         assertEquals(new GridPoint2(3, 3), tank.getTileCoordinates());
         tank.tryMove(Direction.DOWN, tile -> true);

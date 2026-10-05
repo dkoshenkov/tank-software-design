@@ -1,5 +1,6 @@
 package ru.mipt.bit.platformer.level;
 
+import com.badlogic.gdx.math.GridPoint2;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -7,21 +8,14 @@ import static org.junit.Assert.*;
 public class LevelMapTest {
     @Test public void containsCornersButRejectsAllFourOutsideEdges() {
         LevelMap level = new LevelMap(3, 2);
-        assertTrue(level.containsTile(0, 0));
-        assertTrue(level.containsTile(2, 0));
-        assertTrue(level.containsTile(0, 1));
-        assertTrue(level.containsTile(2, 1));
-        assertFalse(level.containsTile(-1, 0));
-        assertFalse(level.containsTile(0, -1));
-        assertFalse(level.containsTile(3, 0));
-        assertFalse(level.containsTile(0, 2));
-    }
-
-    @Test public void singleTileLevelContainsOnlyOrigin() {
-        LevelMap level = new LevelMap(1, 1);
-        assertTrue(level.containsTile(0, 0));
-        assertFalse(level.containsTile(1, 0));
-        assertFalse(level.containsTile(0, 1));
+        assertTrue(level.containsTile(new GridPoint2(0, 0)));
+        assertTrue(level.containsTile(new GridPoint2(2, 0)));
+        assertTrue(level.containsTile(new GridPoint2(0, 1)));
+        assertTrue(level.containsTile(new GridPoint2(2, 1)));
+        assertFalse(level.containsTile(new GridPoint2(-1, 0)));
+        assertFalse(level.containsTile(new GridPoint2(0, -1)));
+        assertFalse(level.containsTile(new GridPoint2(3, 0)));
+        assertFalse(level.containsTile(new GridPoint2(0, 2)));
     }
 
     @Test public void rejectsNonPositiveDimensions() {

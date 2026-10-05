@@ -2,46 +2,34 @@ package ru.mipt.bit.platformer.world;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.utils.Disposable;
-import ru.mipt.bit.platformer.level.LevelMapAssets;
-import ru.mipt.bit.platformer.level.LevelMapRenderer;
-import ru.mipt.bit.platformer.obstacle.ObstacleRenderer;
-import ru.mipt.bit.platformer.tank.TankRenderer;
+import ru.mipt.bit.platformer.rendering.ObjectView;
+
+import java.util.List;
 
 import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
 
-public class GameWorldRenderer implements Disposable {
-    private final GameWorld world;
+public final class GameWorldRenderer {
     private final Batch batch;
-    private final LevelMapRenderer levelMapRenderer;
-    private final TankRenderer tankRenderer;
-    private final ObstacleRenderer obstacleRenderer;
+    private final Runnable renderMap;
+    private final List<ObjectView> views;
 
-    public GameWorldRenderer(GameWorld world, LevelMapAssets levelMapAssets) {
-        this.world = world;
-        batch = new SpriteBatch();
-        levelMapRenderer = new LevelMapRenderer(batch, levelMapAssets);
-        tankRenderer = new TankRenderer("images/tank_blue.png", levelMapAssets.getGroundLayer());
-        obstacleRenderer = new ObstacleRenderer("images/greenTree.png", levelMapAssets.getGroundLayer());
+    public GameWorldRenderer(Batch batch, Runnable renderMap, List<ObjectView> views) {
+        this.batch = batch;
+        this.renderMap = renderMap;
+        this.views = List.copyOf(views);
     }
 
     public void render() {
         Gdx.gl.glClearColor(0f, 0f, 0.2f, 1f);
         Gdx.gl.glClear(GL_COLOR_BUFFER_BIT);
-        levelMapRenderer.render();
-
+        renderMap.run();
         batch.begin();
-        tankRenderer.render(batch, world.getTank());
-        obstacleRenderer.render(batch, world.getObstacle());
-        batch.end();
-    }
-
-    @Override
-    public void dispose() {
-        tankRenderer.dispose();
-        obstacleRenderer.dispose();
-        levelMapRenderer.dispose();
-        batch.dispose();
+        try {
+            for (ObjectView view : views) {
+                view.render(batch);
+            }
+        } finally {
+            batch.end();
+        }
     }
 }
