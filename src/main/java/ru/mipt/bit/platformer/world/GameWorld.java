@@ -1,36 +1,39 @@
 package ru.mipt.bit.platformer.world;
 
 import com.badlogic.gdx.math.GridPoint2;
-import ru.mipt.bit.platformer.level.LevelMap;
-import ru.mipt.bit.platformer.obstacle.Obstacle;
-import ru.mipt.bit.platformer.tank.Tank;
+import ru.mipt.bit.platformer.model.Updatable;
+import ru.mipt.bit.platformer.model.TileBlocker;
+import ru.mipt.bit.platformer.model.TileBounds;
+
+import java.util.List;
 
 public class GameWorld {
-    private final Tank tank;
-    private final Obstacle obstacle;
+    private final List<Updatable> updatables;
+    private final TileBounds tileBounds;
+    private final List<TileBlocker> obstacles;
 
-    private final LevelMap levelMap;
-
-    public GameWorld(Tank tank, Obstacle obstacle, LevelMap levelMap) {
-        this.levelMap = levelMap;
-        this.tank = tank;
-        this.obstacle = obstacle;
+    public GameWorld(List<Updatable> updatables, TileBounds tileBounds, List<TileBlocker> obstacles) {
+        this.updatables = List.copyOf(updatables);
+        this.tileBounds = tileBounds;
+        this.obstacles = List.copyOf(obstacles);
     }
 
     public void update(float deltaSeconds) {
-        tank.updateMovement(deltaSeconds);
+        for (Updatable updatable : updatables) {
+            updatable.update(deltaSeconds);
+        }
     }
 
     public boolean canMoveTo(GridPoint2 tileCoordinates) {
-        return levelMap.containsTile(tileCoordinates.x, tileCoordinates.y)
-                && !obstacle.occupiesTile(tileCoordinates);
+        return tileBounds.containsTile(tileCoordinates) && !isBlocked(tileCoordinates);
     }
 
-    public Tank getTank() {
-        return tank;
-    }
-
-    public Obstacle getObstacle() {
-        return obstacle;
+    private boolean isBlocked(GridPoint2 tileCoordinates) {
+        for (TileBlocker blocker : obstacles) {
+            if (blocker.occupiesTile(tileCoordinates)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

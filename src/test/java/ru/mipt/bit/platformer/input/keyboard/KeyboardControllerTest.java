@@ -1,0 +1,36 @@
+package ru.mipt.bit.platformer.input.keyboard;
+
+import org.junit.Test;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import static com.badlogic.gdx.Input.Keys.*;
+import static org.junit.Assert.*;
+
+public class KeyboardControllerTest {
+    @Test public void heldActionRepeatsOncePerFrameEvenWithBothAliases() {
+        KeyboardController controller = new KeyboardController();
+        TestInput input = new TestInput();
+        List<String> calls = new ArrayList<>();
+        controller.bindHeld(() -> calls.add("move"), W, UP);
+        controller.handleInput(input.input);
+        assertTrue(calls.isEmpty());
+        input.held.add(W);
+        input.held.add(UP);
+        controller.handleInput(input.input);
+        controller.handleInput(input.input);
+        assertEquals(Arrays.asList("move", "move"), calls);
+    }
+
+    @Test public void bindingCopiesKeys() {
+        KeyboardController controller = new KeyboardController();
+        TestInput input = new TestInput();
+        int[] keys = {SPACE};
+        int[] calls = {0};
+        controller.bindHeld(() -> calls[0]++, keys);
+        keys[0] = W;
+        input.held.add(SPACE);
+        controller.handleInput(input.input);
+        assertEquals(1, calls[0]);
+    }
+}

@@ -4,39 +4,27 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
-import ru.mipt.bit.platformer.level.LevelMapAssets;
-import ru.mipt.bit.platformer.obstacle.Obstacle;
-import ru.mipt.bit.platformer.tank.Tank;
-import ru.mipt.bit.platformer.tank.TankKeyboardController;
-import ru.mipt.bit.platformer.world.GameWorld;
-import ru.mipt.bit.platformer.world.GameWorldRenderer;
+import ru.mipt.bit.platformer.app.GameSceneBuilder;
+import ru.mipt.bit.platformer.app.GameSession;
 
 public class GameDesktopLauncher extends ApplicationAdapter {
-    private GameWorld world;
-    private LevelMapAssets levelMapAssets;
-    private GameWorldRenderer worldRenderer;
-    private TankKeyboardController playerKeyboardController;
+    private GameSession session;
 
     @Override
     public void create() {
-        levelMapAssets = new LevelMapAssets("level.tmx");
-        Tank playerTank = new Tank(1, 1);
-        world = new GameWorld(playerTank, new Obstacle(1, 3), levelMapAssets.getLevelMap());
-        playerKeyboardController = new TankKeyboardController(playerTank, world::canMoveTo);
-        worldRenderer = new GameWorldRenderer(world, levelMapAssets);
+        session = new GameSceneBuilder().build();
     }
 
     @Override
     public void render() {
-        playerKeyboardController.handleInput(Gdx.input);
-        world.update(Gdx.graphics.getDeltaTime());
-        worldRenderer.render();
+        session.renderFrame(Gdx.input, Gdx.graphics.getDeltaTime());
     }
 
     @Override
     public void dispose() {
-        worldRenderer.dispose();
-        levelMapAssets.dispose();
+        if (session != null) {
+            session.dispose();
+        }
     }
 
     public static void main(String[] args) {
