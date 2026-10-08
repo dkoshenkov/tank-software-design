@@ -2,9 +2,9 @@ package ru.mipt.bit.platformer.world;
 
 import com.badlogic.gdx.math.GridPoint2;
 import org.junit.Test;
-import ru.mipt.bit.platformer.level.LevelMap;
-import ru.mipt.bit.platformer.tank.*;
-import ru.mipt.bit.platformer.obstacle.Tree;
+import ru.mipt.bit.platformer.model.level.LevelMap;
+import ru.mipt.bit.platformer.model.tank.*;
+import ru.mipt.bit.platformer.model.obstacle.Tree;
 import ru.mipt.bit.platformer.model.TileBlocker;
 import ru.mipt.bit.platformer.model.TileBounds;
 import java.util.ArrayList;

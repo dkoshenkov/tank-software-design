@@ -25,14 +25,15 @@ public class GameWorld {
     }
 
     public boolean canMoveTo(GridPoint2 tileCoordinates) {
-        if (!tileBounds.containsTile(tileCoordinates)) {
-            return false;
-        }
+        return tileBounds.containsTile(tileCoordinates) && !isBlocked(tileCoordinates);
+    }
+
+    private boolean isBlocked(GridPoint2 tileCoordinates) {
         for (TileBlocker blocker : obstacles) {
             if (blocker.occupiesTile(tileCoordinates)) {
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 }
