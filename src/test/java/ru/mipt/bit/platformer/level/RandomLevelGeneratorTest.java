@@ -2,19 +2,23 @@ package ru.mipt.bit.platformer.level;
 
 import com.badlogic.gdx.math.GridPoint2;
 import org.junit.Test;
+import ru.mipt.bit.platformer.model.level.LevelBounds;
 import ru.mipt.bit.platformer.model.level.LevelLayout;
-import ru.mipt.bit.platformer.model.level.LevelMap;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 public class RandomLevelGeneratorTest {
-    @Test public void generatesUniqueTreesInsideLevelWithoutBlockingPlayer() {
+    @Test
+    public void generatesUniqueTreesInsideLevelWithoutBlockingPlayer() {
         RandomLevelGenerator generator = new RandomLevelGenerator(10, 8, new Random(42));
-        LevelMap bounds = new LevelMap(10, 8);
+        LevelBounds bounds = new LevelBounds(10, 8);
         HashSet<GridPoint2> starts = new HashSet<>();
         HashSet<List<GridPoint2>> treeLayouts = new HashSet<>();
         for (int i = 0; i < 100; i++) {
@@ -34,14 +38,16 @@ public class RandomLevelGeneratorTest {
         assertTrue(treeLayouts.size() > 1);
     }
 
-    @Test public void singleTileLevelContainsOnlyPlayer() {
+    @Test
+    public void singleTileLevelContainsOnlyPlayer() {
         LevelLayout layout = new RandomLevelGenerator(1, 1, new Random(42)).generate();
 
         assertEquals(new GridPoint2(0, 0), layout.getPlayerPosition());
         assertTrue(layout.getTreePositions().isEmpty());
     }
 
-    @Test public void rejectsNonPositiveDimensions() {
+    @Test
+    public void rejectsNonPositiveDimensions() {
         assertThrows(IllegalArgumentException.class, () -> new RandomLevelGenerator(0, 8, new Random()));
         assertThrows(IllegalArgumentException.class, () -> new RandomLevelGenerator(10, -1, new Random()));
     }

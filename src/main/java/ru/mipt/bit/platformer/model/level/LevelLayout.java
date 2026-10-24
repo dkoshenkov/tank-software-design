@@ -12,7 +12,7 @@ public final class LevelLayout {
     private final List<GridPoint2> treePositions;
 
     public LevelLayout(int width, int height, GridPoint2 playerPosition, List<GridPoint2> treePositions) {
-        LevelMap bounds = new LevelMap(width, height);
+        LevelBounds bounds = new LevelBounds(width, height);
         if (!bounds.containsTile(playerPosition)) {
             throw new IllegalArgumentException("Player must be inside the level");
         }
@@ -43,7 +43,7 @@ public final class LevelLayout {
         return copyPositions(treePositions);
     }
 
-    private List<GridPoint2> copyPositions(List<GridPoint2> positions) {
+    private static List<GridPoint2> copyPositions(List<GridPoint2> positions) {
         List<GridPoint2> copy = new ArrayList<>();
         for (GridPoint2 position : positions) {
             copy.add(new GridPoint2(position));

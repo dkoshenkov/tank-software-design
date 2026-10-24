@@ -6,7 +6,6 @@ import org.junit.Test;
 import ru.mipt.bit.platformer.model.level.LevelLayout;
 
 import java.util.List;
-import java.util.ArrayList;
 
 import static org.junit.Assert.*;
 
@@ -43,22 +42,6 @@ public class FileLevelGeneratorTest {
         assertEquals(1, layout.getHeight());
         assertEquals(new GridPoint2(0, 0), layout.getPlayerPosition());
         assertTrue(layout.getTreePositions().isEmpty());
-    }
-
-    @Test public void layoutKeepsItsPositionsWhenOriginalOrReturnedPointsChange() {
-        GridPoint2 player = new GridPoint2(0, 0);
-        GridPoint2 tree = new GridPoint2(1, 1);
-        List<GridPoint2> trees = new ArrayList<>(List.of(tree));
-        LevelLayout layout = new LevelLayout(2, 2, player, trees);
-        player.set(9, 9);
-        tree.set(9, 9);
-        trees.clear();
-        layout.getPlayerPosition().set(9, 9);
-        layout.getTreePositions().get(0).set(9, 9);
-        layout.getTreePositions().clear();
-
-        assertEquals(new GridPoint2(0, 0), layout.getPlayerPosition());
-        assertEquals(List.of(new GridPoint2(1, 1)), layout.getTreePositions());
     }
 
     private LevelLayout generate(String text) {

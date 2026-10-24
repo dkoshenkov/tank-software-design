@@ -31,7 +31,8 @@ public final class FileLevelGenerator implements LevelGenerator {
             }
             for (int x = 0; x < width; x++) {
                 GridPoint2 position = new GridPoint2(x, rows.size() - row - 1);
-                switch (line.charAt(x)) {
+                char cell = line.charAt(x);
+                switch (cell) {
                     case 'T':
                         treePositions.add(position);
                         break;
@@ -44,7 +45,7 @@ public final class FileLevelGenerator implements LevelGenerator {
                     case '_':
                         break;
                     default:
-                        throw new IllegalArgumentException("Unknown level cell: " + line.charAt(x));
+                        throw new IllegalArgumentException("Unknown level cell: " + cell);
                 }
             }
         }

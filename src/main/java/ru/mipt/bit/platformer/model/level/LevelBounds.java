@@ -3,11 +3,11 @@ package ru.mipt.bit.platformer.model.level;
 import com.badlogic.gdx.math.GridPoint2;
 import ru.mipt.bit.platformer.model.TileBounds;
 
-public final class LevelMap implements TileBounds {
+public final class LevelBounds implements TileBounds {
     private final int width;
     private final int height;
 
-    public LevelMap(int width, int height) {
+    public LevelBounds(int width, int height) {
         if (width <= 0 || height <= 0) {
             throw new IllegalArgumentException("Level dimensions must be positive");
         }

@@ -5,7 +5,7 @@ import com.badlogic.gdx.utils.Disposable;
 import org.junit.Test;
 import ru.mipt.bit.platformer.input.keyboard.TankKeyboardController;
 import ru.mipt.bit.platformer.input.keyboard.TestInput;
-import ru.mipt.bit.platformer.model.level.LevelMap;
+import ru.mipt.bit.platformer.model.level.LevelBounds;
 import ru.mipt.bit.platformer.model.tank.Tank;
 import ru.mipt.bit.platformer.world.GameWorld;
 
@@ -18,7 +18,7 @@ import static org.junit.Assert.*;
 public class GameSessionTest {
     @Test public void frameHandlesInputThenUpdatesThenRenders() {
         Tank tank = new Tank(1, 1);
-        GameWorld world = new GameWorld(List.of(tank), new LevelMap(10, 8), List.of());
+        GameWorld world = new GameWorld(List.of(tank), new LevelBounds(10, 8), List.of());
         TankKeyboardController keyboard = new TankKeyboardController(direction ->
                 tank.tryMove(direction, world::canMoveTo));
         TestInput input = new TestInput();
@@ -35,7 +35,7 @@ public class GameSessionTest {
         GameWorld world = new GameWorld(List.of(delta -> {
             assertEquals(0.25f, delta, 0f);
             stages.add("update");
-        }), new LevelMap(10, 8), List.of());
+        }), new LevelBounds(10, 8), List.of());
         TestInput input = new TestInput();
         GameSession session = new GameSession(world, actualInput -> {
             assertSame(input.input, actualInput);
