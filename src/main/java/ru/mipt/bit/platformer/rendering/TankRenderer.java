@@ -4,12 +4,13 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector2;
 import ru.mipt.bit.platformer.model.MotionState;
 
-import static ru.mipt.bit.platformer.rendering.TextureRegionRenderer.drawAtNativeSize;
+import static com.badlogic.gdx.math.MathUtils.lerp;
 
 public class TankRenderer implements ObjectView {
+    private static final float NATIVE_SCALE = 1f;
+
     private final MotionState tank;
     private final TextureRegion textureRegion;
     private final Rectangle renderBounds;
@@ -25,20 +26,45 @@ public class TankRenderer implements ObjectView {
     @Override
     public void render(Batch batch) {
         updateRenderBounds();
-        drawAtNativeSize(batch, textureRegion, renderBounds.x, renderBounds.y, tank.getRotationDegrees());
+        drawTank(batch);
+    }
+
+    private void drawTank(Batch batch) {
+        float width = renderBounds.width;
+        float height = renderBounds.height;
+        batch.draw(
+                textureRegion,
+                renderBounds.x,
+                renderBounds.y,
+                rotationOrigin(width),
+                rotationOrigin(height),
+                width,
+                height,
+                NATIVE_SCALE,
+                NATIVE_SCALE,
+                tank.getRotationDegrees());
+    }
+
+    private float rotationOrigin(float size) {
+        return size / 2f;
     }
 
     private void updateRenderBounds() {
-        Vector2 center = tileCenter(tank.getTileCoordinates());
-        Vector2 destination = tileCenter(tank.getDestinationTileCoordinates());
+        GridPoint2 from = tank.getTileCoordinates();
+        GridPoint2 to = tank.getDestinationTileCoordinates();
+        float progress = tank.getMovementProgress();
 
-        center.lerp(destination, tank.getMovementProgress());
-        renderBounds.setCenter(center.x, center.y);
+        renderBounds.setCenter(
+                interpolateCenterX(from, to, progress),
+                interpolateCenterY(from, to, progress)
+                );
     }
 
-    private Vector2 tileCenter(GridPoint2 tile) {
-        return new Vector2(
-                tilePositioning.tileCenterX(tile),
-                tilePositioning.tileCenterY(tile));
+    private float interpolateCenterX(GridPoint2 from, GridPoint2 to, float progress) {
+        return lerp(tilePositioning.tileCenterX(from), tilePositioning.tileCenterX(to), progress);
+    }
+
+    private float interpolateCenterY(GridPoint2 from, GridPoint2 to, float progress) {
+        return lerp(tilePositioning.tileCenterY(from), tilePositioning.tileCenterY(to), progress);
     }
 }

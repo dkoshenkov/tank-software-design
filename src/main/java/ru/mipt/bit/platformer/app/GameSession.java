@@ -11,21 +11,21 @@ import java.util.function.Consumer;
 public final class GameSession implements Disposable {
     private final GameWorld world;
     private final Consumer<Input> handleInput;
-    private final Runnable render;
+    private final Runnable renderScene;
     private final List<Disposable> ownedResources;
 
     GameSession(GameWorld world, Consumer<Input> handleInput,
-                Runnable render, List<Disposable> ownedResources) {
+                Runnable renderScene, List<Disposable> ownedResources) {
         this.world = world;
         this.handleInput = handleInput;
-        this.render = render;
+        this.renderScene = renderScene;
         this.ownedResources = new ArrayList<>(ownedResources);
     }
 
     public void renderFrame(Input input, float deltaSeconds) {
         handleInput.accept(input);
         world.update(deltaSeconds);
-        render.run();
+        renderScene.run();
     }
 
     @Override

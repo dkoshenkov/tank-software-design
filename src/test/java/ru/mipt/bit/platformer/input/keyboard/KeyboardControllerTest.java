@@ -2,7 +2,6 @@ package ru.mipt.bit.platformer.input.keyboard;
 
 import org.junit.Test;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import static com.badlogic.gdx.Input.Keys.*;
 import static org.junit.Assert.*;
@@ -19,7 +18,7 @@ public class KeyboardControllerTest {
         input.held.add(UP);
         controller.handleInput(input.input);
         controller.handleInput(input.input);
-        assertEquals(Arrays.asList("move", "move"), calls);
+        assertEquals(List.of("move", "move"), calls);
     }
 
     @Test public void bindingCopiesKeys() {

@@ -57,18 +57,22 @@ public class Tank implements Updatable, MotionState {
         return movementProgress < MOVEMENT_COMPLETE;
     }
 
+    @Override
     public GridPoint2 getTileCoordinates() {
         return new GridPoint2(tileCoordinates);
     }
 
+    @Override
     public GridPoint2 getDestinationTileCoordinates() {
         return new GridPoint2(destinationTileCoordinates);
     }
 
+    @Override
     public float getMovementProgress() {
         return movementProgress;
     }
 
+    @Override
     public float getRotationDegrees() {
         return direction.getRotationDegrees();
     }

@@ -9,14 +9,28 @@ public class LevelMapAssets implements Disposable {
     private final TiledMap tiledMap;
     private final TiledMapTileLayer groundLayer;
 
-    public LevelMapAssets(String pathToMap) {
+    public LevelMapAssets(String pathToMap, int width, int height) {
         tiledMap = new TmxMapLoader().load(pathToMap);
         try {
-            groundLayer = (TiledMapTileLayer) tiledMap.getLayers().get(0);
+            TiledMapTileLayer sourceLayer = (TiledMapTileLayer) tiledMap.getLayers().get(0);
+            groundLayer = repeatGroundLayer(sourceLayer, width, height);
+            tiledMap.getLayers().remove(0);
+            tiledMap.getLayers().add(groundLayer);
         } catch (RuntimeException | Error failure) {
             disposeAfterLoadFailure(failure);
             throw failure;
         }
+    }
+
+    private TiledMapTileLayer repeatGroundLayer(TiledMapTileLayer source, int width, int height) {
+        TiledMapTileLayer layer = new TiledMapTileLayer(width, height,
+                (int) source.getTileWidth(), (int) source.getTileHeight());
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                layer.setCell(x, y, source.getCell(x % source.getWidth(), y % source.getHeight()));
+            }
+        }
+        return layer;
     }
 
     private void disposeAfterLoadFailure(Throwable failure) {

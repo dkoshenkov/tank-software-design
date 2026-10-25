@@ -6,13 +6,29 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import ru.mipt.bit.platformer.app.GameSceneBuilder;
 import ru.mipt.bit.platformer.app.GameSession;
+import ru.mipt.bit.platformer.level.FileLevelGenerator;
+import ru.mipt.bit.platformer.level.LevelGenerator;
+import ru.mipt.bit.platformer.level.RandomLevelGenerator;
+
+import java.util.Random;
 
 public class GameDesktopLauncher extends ApplicationAdapter {
+    private final String levelPath;
     private GameSession session;
+
+    public GameDesktopLauncher(String levelPath) {
+        this.levelPath = levelPath;
+    }
 
     @Override
     public void create() {
-        session = new GameSceneBuilder().build();
+        LevelGenerator generator;
+        if (levelPath.equals("random")) {
+            generator = new RandomLevelGenerator(10, 8, new Random());
+        } else {
+            generator = new FileLevelGenerator(Gdx.files.internal(levelPath));
+        }
+        session = new GameSceneBuilder(generator).build();
     }
 
     @Override
@@ -29,8 +45,8 @@ public class GameDesktopLauncher extends ApplicationAdapter {
 
     public static void main(String[] args) {
         Lwjgl3ApplicationConfiguration windowConfig = new Lwjgl3ApplicationConfiguration();
-        // level width: 10 tiles x 128px, height: 8 tiles x 128px
         windowConfig.setWindowedMode(1280, 1024);
-        new Lwjgl3Application(new GameDesktopLauncher(), windowConfig);
+        String levelPath = args.length == 0 ? "level.txt" : args[0];
+        new Lwjgl3Application(new GameDesktopLauncher(levelPath), windowConfig);
     }
 }
