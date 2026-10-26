@@ -6,8 +6,6 @@ import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Rectangle;
 import ru.mipt.bit.platformer.model.MotionState;
 
-import static com.badlogic.gdx.math.MathUtils.lerp;
-
 public class TankRenderer implements ObjectView {
     private static final float NATIVE_SCALE = 1f;
 
@@ -54,17 +52,6 @@ public class TankRenderer implements ObjectView {
         GridPoint2 to = tank.getDestinationTileCoordinates();
         float progress = tank.getMovementProgress();
 
-        renderBounds.setCenter(
-                interpolateCenterX(from, to, progress),
-                interpolateCenterY(from, to, progress)
-                );
-    }
-
-    private float interpolateCenterX(GridPoint2 from, GridPoint2 to, float progress) {
-        return lerp(tilePositioning.tileCenterX(from), tilePositioning.tileCenterX(to), progress);
-    }
-
-    private float interpolateCenterY(GridPoint2 from, GridPoint2 to, float progress) {
-        return lerp(tilePositioning.tileCenterY(from), tilePositioning.tileCenterY(to), progress);
+        tilePositioning.interpolateCenter(renderBounds, from, to, progress);
     }
 }

@@ -16,10 +16,21 @@ public class TilePositioningTest {
         assertEquals(10f, bounds.height, 0f);
     }
 
-    @Test public void calculatesTileCenterWithoutChangingCoordinates() {
-        GridPoint2 coordinates = new GridPoint2(2, 3);
-        assertEquals(320f, positioning.tileCenterX(coordinates), 0f);
-        assertEquals(224f, positioning.tileCenterY(coordinates), 0f);
-        assertEquals(new GridPoint2(2, 3), coordinates);
+    @Test public void interpolatesCenterWithoutChangingTileCoordinatesOrSpriteSize() {
+        GridPoint2 from = new GridPoint2(2, 3);
+        GridPoint2 to = new GridPoint2(3, 4);
+        Rectangle bounds = new Rectangle(0, 0, 20, 10);
+        float[] progress = {0f, 0.5f, 1f};
+        float[] expectedX = {310f, 374f, 438f};
+        float[] expectedY = {219f, 251f, 283f};
+        for (int i = 0; i < progress.length; i++) {
+            positioning.interpolateCenter(bounds, from, to, progress[i]);
+            assertEquals(expectedX[i], bounds.x, 0f);
+            assertEquals(expectedY[i], bounds.y, 0f);
+            assertEquals(20f, bounds.width, 0f);
+            assertEquals(10f, bounds.height, 0f);
+        }
+        assertEquals(new GridPoint2(2, 3), from);
+        assertEquals(new GridPoint2(3, 4), to);
     }
 }

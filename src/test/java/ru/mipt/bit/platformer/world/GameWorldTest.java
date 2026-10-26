@@ -6,7 +6,6 @@ import ru.mipt.bit.platformer.model.TileBlocker;
 import ru.mipt.bit.platformer.model.TileBounds;
 import ru.mipt.bit.platformer.model.Updatable;
 import ru.mipt.bit.platformer.model.level.LevelBounds;
-import ru.mipt.bit.platformer.model.level.LevelMap;
 import ru.mipt.bit.platformer.model.obstacle.Tree;
 import ru.mipt.bit.platformer.model.tank.Direction;
 import ru.mipt.bit.platformer.model.tank.Tank;
@@ -21,7 +20,7 @@ public class GameWorldTest {
         List<Updatable> updateList = new ArrayList<>();
         updateList.add(delta -> calls.add("first:" + delta));
         updateList.add(delta -> calls.add("second:" + delta));
-        GameWorld world = new GameWorld(updateList, new LevelMap(2, 2), List.of());
+        GameWorld world = new GameWorld(updateList, new LevelBounds(2, 2), List.of());
         updateList.clear();
 
         world.update(0.25f);
@@ -30,7 +29,7 @@ public class GameWorldTest {
     }
 
     @Test public void rejectsAllFourOutsideEdgesAndAllowsCorners() {
-        GameWorld world = new GameWorld(List.of(new Tank(0, 0)), new LevelMap(10, 8),
+        GameWorld world = new GameWorld(List.of(new Tank(0, 0)), new LevelBounds(10, 8),
                 List.of(new Tree(1, 3)));
         int[][] outside = {{-1,0}, {0,-1}, {10,0}, {0,8}, {100,100}};
         for (int[] p : outside) {

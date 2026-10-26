@@ -19,14 +19,14 @@ public class GameSessionTest {
     @Test public void frameHandlesInputThenUpdatesThenRenders() {
         Tank tank = new Tank(1, 1);
         GameWorld world = new GameWorld(List.of(tank), new LevelBounds(10, 8), List.of());
-        TankKeyboardController keyboard = new TankKeyboardController(direction ->
-                tank.tryMove(direction, world::canMoveTo));
         TestInput input = new TestInput();
+        TankKeyboardController keyboard = new TankKeyboardController(input.input, direction ->
+                tank.tryMove(direction, world::canMoveTo));
         input.held.add(RIGHT);
         List<GridPoint2> renderedPositions = new ArrayList<>();
-        new GameSession(world, keyboard::handleInput,
+        new GameSession(world, keyboard::controlTank,
                 () -> renderedPositions.add(tank.getTileCoordinates()), List.of())
-                .renderFrame(input.input, 0.4f);
+                .renderFrame(0.4f);
         assertEquals(List.of(new GridPoint2(2, 1)), renderedPositions);
     }
 
@@ -36,13 +36,11 @@ public class GameSessionTest {
             assertEquals(0.25f, delta, 0f);
             stages.add("update");
         }), new LevelBounds(10, 8), List.of());
-        TestInput input = new TestInput();
-        GameSession session = new GameSession(world, actualInput -> {
-            assertSame(input.input, actualInput);
-            stages.add("input");
-        }, () -> stages.add("render"), List.of());
+        GameSession session = new GameSession(world,
+                () -> stages.add("input"),
+                () -> stages.add("render"), List.of());
 
-        session.renderFrame(input.input, 0.25f);
+        session.renderFrame(0.25f);
 
         assertEquals(List.of("input", "update", "render"), stages);
     }
