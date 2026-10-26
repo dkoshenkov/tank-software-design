@@ -16,7 +16,7 @@ public class TankKeyboardControllerTest {
             TestInput input = new TestInput();
             input.held.add(keys[i]);
             List<Direction> directions = new ArrayList<>();
-            new TankKeyboardController(directions::add).handleInput(input.input);
+            new TankKeyboardController(input.input, directions::add).controlTank();
             assertEquals("Key " + keys[i],
                     Direction.values()[i / 2], directions.get(0));
         }
@@ -24,7 +24,7 @@ public class TankKeyboardControllerTest {
 
     @Test public void noInputLeavesTankIdle() {
         List<Direction> directions = new ArrayList<>();
-        new TankKeyboardController(directions::add).handleInput(new TestInput().input);
+        new TankKeyboardController(new TestInput().input, directions::add).controlTank();
         assertTrue(directions.isEmpty());
     }
 
@@ -36,7 +36,7 @@ public class TankKeyboardControllerTest {
         input.held.add(RIGHT);
         List<Direction> directions = new ArrayList<>();
 
-        new TankKeyboardController(directions::add).handleInput(input.input);
+        new TankKeyboardController(input.input, directions::add).controlTank();
 
         assertEquals(List.of(Direction.UP, Direction.LEFT, Direction.DOWN, Direction.RIGHT), directions);
     }
@@ -46,9 +46,9 @@ public class TankKeyboardControllerTest {
         TestInput input = new TestInput();
         input.held.add(W);
         input.held.add(D);
-        TankKeyboardController controller = new TankKeyboardController(direction ->
+        TankKeyboardController controller = new TankKeyboardController(input.input, direction ->
                 tank.tryMove(direction, tile -> tile.y != 3));
-        controller.handleInput(input.input);
+        controller.controlTank();
         assertEquals(new GridPoint2(3, 2), tank.getDestinationTileCoordinates());
     }
 

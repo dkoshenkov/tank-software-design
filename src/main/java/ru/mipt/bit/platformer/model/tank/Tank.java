@@ -3,12 +3,13 @@ package ru.mipt.bit.platformer.model.tank;
 import com.badlogic.gdx.math.GridPoint2;
 import ru.mipt.bit.platformer.model.MotionState;
 import ru.mipt.bit.platformer.model.Updatable;
+import ru.mipt.bit.platformer.model.TileBlocker;
 
 import java.util.function.Predicate;
 
 import static com.badlogic.gdx.math.MathUtils.clamp;
 
-public class Tank implements Updatable, MotionState {
+public class Tank implements Updatable, MotionState, TileBlocker {
     private static final float MOVEMENT_START = 0f;
     private static final float MOVEMENT_COMPLETE = 1f;
     private static final float DEFAULT_MOVE_DURATION_SECONDS = 0.4f;
@@ -53,8 +54,14 @@ public class Tank implements Updatable, MotionState {
         }
     }
 
-    private boolean isMoving() {
+    public boolean isMoving() {
         return movementProgress < MOVEMENT_COMPLETE;
+    }
+
+    @Override
+    public boolean occupiesTile(GridPoint2 tileCoordinates) {
+        return this.tileCoordinates.equals(tileCoordinates)
+                || destinationTileCoordinates.equals(tileCoordinates);
     }
 
     @Override

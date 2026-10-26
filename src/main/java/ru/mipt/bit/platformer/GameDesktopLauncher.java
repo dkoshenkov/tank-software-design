@@ -28,12 +28,12 @@ public class GameDesktopLauncher extends ApplicationAdapter {
         } else {
             generator = new FileLevelGenerator(Gdx.files.internal(levelPath));
         }
-        session = new GameSceneBuilder(generator).build();
+        session = new GameSceneBuilder(generator).build(Gdx.input);
     }
 
     @Override
     public void render() {
-        session.renderFrame(Gdx.input, Gdx.graphics.getDeltaTime());
+        session.renderFrame(Gdx.graphics.getDeltaTime());
     }
 
     @Override
