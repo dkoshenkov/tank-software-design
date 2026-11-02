@@ -31,7 +31,7 @@ public class TankControlIntegrationTest {
         TestInput input = new TestInput();
         TankControlStrategy keyboard = new TankKeyboardController(input.input, direction ->
                 new MoveCommand(player, direction, world::canMoveTo).run());
-        TankControlStrategy computer = new RandomTankController(ai, world::canMoveTo, random);
+        TankControlStrategy computer = new RandomTankController(ai, world::canMoveTo, random, world::add);
         input.held.add(RIGHT);
         keyboard.controlTank();
         assertFalse(ai.isMoving());
@@ -50,18 +50,21 @@ public class TankControlIntegrationTest {
         GameWorld world = new GameWorld(new java.util.ArrayList<>(tanks), new LevelBounds(3, 3),
                 new java.util.ArrayList<>(tanks));
         List<TankControlStrategy> controls = List.of(
-                new RandomTankController(tanks.get(0), world::canMoveTo, new Random(1)),
-                new RandomTankController(tanks.get(1), world::canMoveTo, new Random(2)),
-                new RandomTankController(tanks.get(2), world::canMoveTo, new Random(3)));
+                new RandomTankController(tanks.get(0), world::canMoveTo, new Random(1), world::add),
+                new RandomTankController(tanks.get(1), world::canMoveTo, new Random(2), world::add),
+                new RandomTankController(tanks.get(2), world::canMoveTo, new Random(3), world::add));
         boolean moved = false;
         for (int frame = 0; frame < 500; frame++) {
             for (TankControlStrategy control : controls) {
                 control.controlTank();
             }
             for (Tank tank : tanks) {
+                if (tank.isDestroyed()) {
+                    continue;
+                }
                 moved |= tank.isMoving();
                 for (Tank other : tanks) {
-                    if (tank != other) {
+                    if (tank != other && !other.isDestroyed()) {
                         assertFalse(other.occupiesTile(tank.getTileCoordinates()));
                         assertFalse(other.occupiesTile(tank.getDestinationTileCoordinates()));
                     }

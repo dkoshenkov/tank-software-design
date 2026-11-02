@@ -6,8 +6,6 @@ import com.badlogic.gdx.utils.Disposable;
 
 import ru.mipt.bit.platformer.input.TankControls;
 import ru.mipt.bit.platformer.level.LevelGenerator;
-import ru.mipt.bit.platformer.model.TileBlocker;
-import ru.mipt.bit.platformer.model.Updatable;
 import ru.mipt.bit.platformer.model.level.LevelBounds;
 import ru.mipt.bit.platformer.model.level.LevelLayout;
 import ru.mipt.bit.platformer.model.obstacle.Tree;
@@ -47,9 +45,12 @@ public final class GameSceneBuilder {
         List<Tank> tanks = collectTanks(player, computerTanks);
         List<Tree> trees = createTrees(layout);
 
-        GameWorld world = createWorld(layout, tanks, trees);
-        GameWorldRenderer worldRenderer = new SceneGraphicsBuilder().build(layout, tanks, trees, ownedResources);
-        TankControls controls = new TankControls(input, player, computerTanks, world::canMoveTo, random);
+        GameWorld world = new GameWorld(new LevelBounds(layout.getWidth(), layout.getHeight()));
+        GameWorldRenderer worldRenderer = new SceneGraphicsBuilder().build(layout, ownedResources);
+        world.addListener(worldRenderer);
+        trees.forEach(world::add);
+        tanks.forEach(world::add);
+        TankControls controls = new TankControls(input, player, computerTanks, world::canMoveTo, random, world::add);
 
         return new GameSession(
                 world,
@@ -80,14 +81,6 @@ public final class GameSceneBuilder {
             trees.add(new Tree(position.x, position.y));
         }
         return trees;
-    }
-
-    private GameWorld createWorld(LevelLayout layout, List<Tank> tanks, List<Tree> trees) {
-        LevelBounds bounds = new LevelBounds(layout.getWidth(), layout.getHeight());
-        List<TileBlocker> obstacles = new ArrayList<>(trees);
-        obstacles.addAll(tanks);
-        List<Updatable> updatables = new ArrayList<>(tanks);
-        return new GameWorld(updatables, bounds, obstacles);
     }
 
     private void disposeFailedScene(List<Disposable> resources, Throwable failure) {
