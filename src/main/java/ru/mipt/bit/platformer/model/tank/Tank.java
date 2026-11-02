@@ -1,10 +1,13 @@
 package ru.mipt.bit.platformer.model.tank;
 
 import com.badlogic.gdx.math.GridPoint2;
-import ru.mipt.bit.platformer.model.MotionState;
-import ru.mipt.bit.platformer.model.Updatable;
-import ru.mipt.bit.platformer.model.TileBlocker;
 
+import ru.mipt.bit.platformer.model.MotionState;
+import ru.mipt.bit.platformer.model.TileBlocker;
+import ru.mipt.bit.platformer.model.Updatable;
+import ru.mipt.bit.platformer.model.bullet.Bullet;
+
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import static com.badlogic.gdx.math.MathUtils.clamp;
@@ -14,6 +17,8 @@ public class Tank implements Updatable, MotionState, TileBlocker {
     private static final float MOVEMENT_COMPLETE = 1f;
     private static final float DEFAULT_MOVE_DURATION_SECONDS = 0.4f;
 
+    private int health;
+    private final int bulletDamage;
     private final GridPoint2 tileCoordinates;
     private final GridPoint2 destinationTileCoordinates;
     private final float moveDurationSeconds;
@@ -25,6 +30,22 @@ public class Tank implements Updatable, MotionState, TileBlocker {
     }
 
     public Tank(int tileX, int tileY, float moveDurationSeconds) {
+        this(tileX, tileY, moveDurationSeconds, 2);
+    }
+
+    public Tank(int tileX, int tileY, float moveDurationSeconds, int health) {
+        this(tileX, tileY, moveDurationSeconds, health, 1);
+    }
+
+    public Tank(int tileX, int tileY, float moveDurationSeconds, int health, int bulletDamage) {
+        if (bulletDamage <= 0) {
+            throw new IllegalArgumentException("Bullet damage must be positive");
+        }
+        this.bulletDamage = bulletDamage;
+        if (health < 0) {
+            throw new IllegalArgumentException("Initial health must not be negative");
+        }
+        this.health = health;
         if (!Float.isFinite(moveDurationSeconds) || moveDurationSeconds <= 0f) {
             throw new IllegalArgumentException("Movement duration must be positive and finite");
         }
@@ -34,7 +55,7 @@ public class Tank implements Updatable, MotionState, TileBlocker {
     }
 
     public void tryMove(Direction direction, Predicate<GridPoint2> canMoveTo) {
-        if (isMoving()) {
+        if (isDestroyed() || isMoving()) {
             return;
         }
         this.direction = direction;
@@ -43,6 +64,28 @@ public class Tank implements Updatable, MotionState, TileBlocker {
             destinationTileCoordinates.set(nextTileCoordinates);
             movementProgress = MOVEMENT_START;
         }
+    }
+
+    public void shoot(Consumer<Bullet> registerBullet) {
+        if (!isDestroyed()) {
+            registerBullet.accept(new Bullet(this,
+                    direction.getAdjacentTileCoordinates(tileCoordinates), direction, bulletDamage));
+        }
+    }
+
+    public void takeDamage(int damage) {
+        if (damage <= 0) {
+            throw new IllegalArgumentException("Damage must be positive");
+        }
+        health = (int) Math.max(Integer.MIN_VALUE, (long) health - damage);
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
+    public boolean isDestroyed() {
+        return health < 0;
     }
 
     @Override

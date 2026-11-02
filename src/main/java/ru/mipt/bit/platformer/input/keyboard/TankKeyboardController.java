@@ -9,10 +9,16 @@ import static com.badlogic.gdx.Input.Keys.*;
 
 public class TankKeyboardController implements TankControlStrategy {
     private final Input input;
+    private final Runnable shoot;
     private final KeyboardController keyboardController = new KeyboardController();
 
     public TankKeyboardController(Input input, Consumer<Direction> move) {
+        this(input, move, () -> { });
+    }
+
+    public TankKeyboardController(Input input, Consumer<Direction> move, Runnable shoot) {
         this.input = input;
+        this.shoot = shoot;
         keyboardController.bindHeld(() -> move.accept(Direction.UP), UP, W);
         keyboardController.bindHeld(() -> move.accept(Direction.LEFT), LEFT, A);
         keyboardController.bindHeld(() -> move.accept(Direction.DOWN), DOWN, S);
@@ -22,5 +28,8 @@ public class TankKeyboardController implements TankControlStrategy {
     @Override
     public void controlTank() {
         keyboardController.handleInput(input);
+        if (input.isKeyJustPressed(SPACE)) {
+            shoot.run();
+        }
     }
 }

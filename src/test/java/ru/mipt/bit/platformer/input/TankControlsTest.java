@@ -29,7 +29,7 @@ public class TankControlsTest {
             }
         };
         TankControls controls = new TankControls(
-                input.input, player, List.of(computer), world::canMoveTo, random);
+                input.input, player, List.of(computer), world::canMoveTo, random, world::add);
 
         input.held.add(RIGHT);
         controls.controlTanks();

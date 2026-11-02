@@ -30,7 +30,7 @@ public class RandomTankControllerTest {
                 return Direction.RIGHT.ordinal();
             }
         };
-        RandomTankController controller = new RandomTankController(tank, tile -> true, random);
+        RandomTankController controller = new RandomTankController(tank, tile -> true, random, bullet -> { });
         controller.controlTank();
         tank.update(0.2f);
         controller.controlTank();
@@ -44,7 +44,7 @@ public class RandomTankControllerTest {
     @Test public void aiRespectsObstaclesAndAllMapEdges() {
         Tank tank = new Tank(0, 0);
         GameWorld world = new GameWorld(List.of(tank), new LevelBounds(2, 1), List.of(tank, new Tree(1, 0)));
-        TankControlStrategy ai = new RandomTankController(tank, world::canMoveTo, new Random(42));
+        TankControlStrategy ai = new RandomTankController(tank, world::canMoveTo, new Random(42), world::add);
         for (int i = 0; i < 100; i++) {
             ai.controlTank();
             world.update(0.4f);
