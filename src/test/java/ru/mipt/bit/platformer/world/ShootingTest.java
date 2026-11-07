@@ -3,7 +3,10 @@ package ru.mipt.bit.platformer.world;
 import com.badlogic.gdx.math.GridPoint2;
 import org.junit.Test;
 import ru.mipt.bit.platformer.input.TankControls;
+import ru.mipt.bit.platformer.input.ai.RandomTankController;
+import ru.mipt.bit.platformer.input.command.MoveCommand;
 import ru.mipt.bit.platformer.input.command.ShootCommand;
+import ru.mipt.bit.platformer.input.keyboard.TankKeyboardController;
 import ru.mipt.bit.platformer.input.keyboard.TestInput;
 import ru.mipt.bit.platformer.model.TilePosition;
 import ru.mipt.bit.platformer.model.bullet.Bullet;
@@ -24,6 +27,7 @@ public class ShootingTest {
     private final List<TilePosition> visible = new ArrayList<>();
 
     public ShootingTest() {
+        new CombatSystem(world);
         world.addListener(new WorldListener() {
             public void objectAdded(TilePosition object) { visible.add(object); }
             public void objectRemoved(TilePosition object) { assertTrue(visible.remove(object)); }
@@ -32,7 +36,7 @@ public class ShootingTest {
 
     @Test public void adjacentHitUsesConfiguredDamageAndDeathRequiresNegativeHealth() {
         Tank shooter = new Tank(0, 0, 0.4f, 2, 2);
-        Tank target = new Tank(1, 0);
+        Tank target = new Tank(1, 0, 0.4f, 2);
         world.add(shooter);
         world.add(target);
         new ShootCommand(shooter, world::add).run();
@@ -52,7 +56,7 @@ public class ShootingTest {
     @Test public void largeDeltaChecksEveryCellAndStopsAtFirstObstacle() {
         Tank shooter = new Tank(0, 0);
         Tree tree = new Tree(3, 0);
-        Tank target = new Tank(5, 0);
+        Tank target = new Tank(5, 0, 0.4f, 2);
         world.add(shooter);
         world.add(tree);
         world.add(target);
@@ -92,8 +96,8 @@ public class ShootingTest {
     }
 
     @Test public void movingOwnerDoesNotAbsorbItsOwnShot() {
-        Tank shooter = new Tank(0, 0);
-        Tank target = new Tank(2, 0);
+        Tank shooter = new Tank(0, 0, 0.4f, 2);
+        Tank target = new Tank(2, 0, 0.4f, 2);
         world.add(shooter);
         world.add(target);
         shooter.tryMove(Direction.RIGHT, world::canMoveTo);
@@ -108,7 +112,7 @@ public class ShootingTest {
 
     @Test public void collectsAllCommandsBeforeExecutingAndDeadAiCannotShoot() {
         Tank player = new Tank(0, 0, 0.4f, 2, 3);
-        Tank enemy = new Tank(1, 0);
+        Tank enemy = new Tank(1, 0, 0.4f, 2);
         world.add(player);
         world.add(enemy);
         TestInput input = new TestInput();
@@ -119,8 +123,7 @@ public class ShootingTest {
                 return bound - 1;
             }
         };
-        TankControls controls = new TankControls(input.input, player, List.of(enemy),
-                world::canMoveTo, chooseShoot, world::add);
+        TankControls controls = controls(input, player, enemy, chooseShoot);
         controls.controlTanks();
         assertTrue(enemy.isDestroyed());
         assertEquals(List.of(player), visible);
@@ -138,8 +141,7 @@ public class ShootingTest {
         Random chooseShoot = new Random() {
             @Override public int nextInt(int bound) { return bound - 1; }
         };
-        TankControls controls = new TankControls(input.input, player, List.of(enemy),
-                world::canMoveTo, chooseShoot, world::add);
+        TankControls controls = controls(input, player, enemy, chooseShoot);
         input.held.add(SPACE);
         controls.controlTanks();
         assertEquals(3, visible.size());
@@ -149,6 +151,21 @@ public class ShootingTest {
         // The second AI shot collides with the first; the player's shot survives.
         assertEquals(3, visible.size());
         assertEquals(new GridPoint2(1, 0), visible.get(2).getTileCoordinates());
+    }
+
+    private TankControls controls(TestInput input, Tank player, Tank enemy, Random random) {
+        TankControls controls = new TankControls();
+        controls.addStrategy(new TankKeyboardController(input.input, direction -> {
+            if (!player.isDestroyed()) {
+                controls.submit(new MoveCommand(player, direction, world::canMoveTo));
+            }
+        }, () -> {
+            if (!player.isDestroyed()) {
+                controls.submit(new ShootCommand(player, world::add));
+            }
+        }));
+        controls.addStrategy(new RandomTankController(enemy, world::canMoveTo, random, world::add, controls::submit));
+        return controls;
     }
 
     @Test public void bulletsFlyingTogetherDoNotHitEachOthersPreviousPositions() {
@@ -165,7 +182,7 @@ public class ShootingTest {
 
     @Test public void hitsTheReservedDestinationOfAMovingTank() {
         Tank shooter = new Tank(0, 0);
-        Tank target = new Tank(2, 1);
+        Tank target = new Tank(2, 1, 0.4f, 2);
         world.add(shooter);
         world.add(target);
         target.tryMove(Direction.DOWN, world::canMoveTo);
@@ -192,8 +209,9 @@ public class ShootingTest {
 
     private int shootAtDepartingTank(float elapsedBeforeShot, float... frames) {
         GameWorld scene = new GameWorld(new LevelBounds(12, 3));
+        new CombatSystem(scene);
         Tank shooter = new Tank(0, 0);
-        Tank target = new Tank(2, 0);
+        Tank target = new Tank(2, 0, 0.4f, 2);
         scene.add(shooter);
         scene.add(target);
         target.tryMove(Direction.UP, scene::canMoveTo);
@@ -221,6 +239,63 @@ public class ShootingTest {
         world.removeListener(listener);
         world.remove(tree);
         assertTrue(visible.isEmpty());
+    }
+
+    @Test public void collisionNotifiesAllListenersOfAdditionBeforeRemoval() {
+        List<String> events = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+            final int listener = i;
+            world.addListener(new WorldListener() {
+                public void objectAdded(TilePosition object) { events.add(listener + ":add"); }
+                public void objectRemoved(TilePosition object) { events.add(listener + ":remove"); }
+            });
+        }
+        world.add(new Bullet(new Tank(0, 0), new GridPoint2(-1, 0), Direction.LEFT, 1));
+        assertEquals(List.of("0:add", "1:add", "0:remove", "1:remove"), events);
+    }
+
+    @Test public void destroyedTankIsRejectedAndExternallyDestroyedTankIsRemoved() {
+        Tank dead = new Tank(1, 0, 0.4f, 0);
+        dead.takeDamage(1);
+        world.add(dead);
+        assertTrue(visible.isEmpty());
+        Tank target = new Tank(2, 0, 0.4f, 0);
+        world.add(target);
+        target.takeDamage(1);
+        world.update(0f);
+        assertTrue(visible.isEmpty());
+        assertTrue(world.canMoveTo(new GridPoint2(2, 0)));
+    }
+
+    @Test public void attachingCombatNormalizesExistingObjects() {
+        GameWorld scene = new GameWorld(new LevelBounds(3, 1));
+        Tank dead = new Tank(0, 0, 0.4f, 0);
+        dead.takeDamage(1);
+        Tank target = new Tank(1, 0, 0.4f, 2);
+        Bullet bullet = new Bullet(new Tank(0, 0), new GridPoint2(1, 0), Direction.RIGHT, 1);
+        scene.add(dead);
+        scene.add(target);
+        scene.add(bullet);
+        List<TilePosition> objects = new ArrayList<>();
+        scene.addListener(new WorldListener() {
+            public void objectAdded(TilePosition object) { objects.add(object); }
+            public void objectRemoved(TilePosition object) { assertTrue(objects.remove(object)); }
+        });
+
+        new CombatSystem(scene);
+
+        assertEquals(List.of(target), objects);
+        assertEquals(1, target.getHealth());
+        assertTrue(scene.canMoveTo(new GridPoint2(0, 0)));
+    }
+
+    @Test public void tankRegisteredOnlyAsUpdatableBlocksAndReceivesDamage() {
+        Tank target = new Tank(1, 0, 0.4f, 2);
+        GameWorld scene = new GameWorld(List.of(target), new LevelBounds(3, 1), List.of());
+        new CombatSystem(scene);
+        assertFalse(scene.canMoveTo(new GridPoint2(1, 0)));
+        new Tank(0, 0).shoot(scene::add);
+        assertEquals(1, target.getHealth());
     }
 
     @Test(expected = IllegalArgumentException.class)

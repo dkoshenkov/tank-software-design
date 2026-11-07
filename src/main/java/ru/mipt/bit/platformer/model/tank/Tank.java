@@ -16,8 +16,10 @@ public class Tank implements Updatable, MotionState, TileBlocker {
     private static final float MOVEMENT_START = 0f;
     private static final float MOVEMENT_COMPLETE = 1f;
     private static final float DEFAULT_MOVE_DURATION_SECONDS = 0.4f;
+    private static final int DEFAULT_HEALTH = 100;
 
     private int health;
+    private final int maxHealth;
     private final int bulletDamage;
     private final GridPoint2 tileCoordinates;
     private final GridPoint2 destinationTileCoordinates;
@@ -30,7 +32,7 @@ public class Tank implements Updatable, MotionState, TileBlocker {
     }
 
     public Tank(int tileX, int tileY, float moveDurationSeconds) {
-        this(tileX, tileY, moveDurationSeconds, 2);
+        this(tileX, tileY, moveDurationSeconds, DEFAULT_HEALTH);
     }
 
     public Tank(int tileX, int tileY, float moveDurationSeconds, int health) {
@@ -46,6 +48,7 @@ public class Tank implements Updatable, MotionState, TileBlocker {
             throw new IllegalArgumentException("Initial health must not be negative");
         }
         this.health = health;
+        this.maxHealth = health;
         if (!Float.isFinite(moveDurationSeconds) || moveDurationSeconds <= 0f) {
             throw new IllegalArgumentException("Movement duration must be positive and finite");
         }
@@ -82,6 +85,10 @@ public class Tank implements Updatable, MotionState, TileBlocker {
 
     public int getHealth() {
         return health;
+    }
+
+    public int getMaxHealth() {
+        return maxHealth;
     }
 
     public boolean isDestroyed() {

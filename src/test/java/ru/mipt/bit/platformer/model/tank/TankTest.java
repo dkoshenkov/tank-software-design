@@ -5,6 +5,21 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class TankTest {
+    @Test public void startsWith100Health() {
+        assertEquals(100, new Tank(2, 3).getHealth());
+        assertEquals(100, new Tank(2, 3, 0.8f).getHealth());
+    }
+
+    @Test public void maximumHealthRemainsInitialHealthAfterDamage() {
+        Tank tank = new Tank(2, 3, 0.4f, 80);
+        assertEquals(80, tank.getHealth());
+        assertEquals(80, tank.getMaxHealth());
+        tank.takeDamage(20);
+        assertEquals(60, tank.getHealth());
+        assertEquals(80, tank.getMaxHealth());
+        assertEquals(100, new Tank(0, 0).getMaxHealth());
+    }
+
     @Test public void startsIdleAtRequestedPositionFacingRight() {
         Tank tank = new Tank(2, 3);
         assertEquals(new GridPoint2(2, 3), tank.getTileCoordinates());
