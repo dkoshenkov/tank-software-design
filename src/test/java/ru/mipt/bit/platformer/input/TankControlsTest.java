@@ -2,6 +2,9 @@ package ru.mipt.bit.platformer.input;
 
 import com.badlogic.gdx.math.GridPoint2;
 import org.junit.Test;
+import ru.mipt.bit.platformer.input.ai.RandomTankController;
+import ru.mipt.bit.platformer.input.command.MoveCommand;
+import ru.mipt.bit.platformer.input.keyboard.TankKeyboardController;
 import ru.mipt.bit.platformer.input.keyboard.TestInput;
 import ru.mipt.bit.platformer.model.level.LevelBounds;
 import ru.mipt.bit.platformer.model.tank.Direction;
@@ -9,6 +12,7 @@ import ru.mipt.bit.platformer.model.tank.Tank;
 import ru.mipt.bit.platformer.world.GameWorld;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Random;
 
 import static com.badlogic.gdx.Input.Keys.RIGHT;
@@ -28,8 +32,10 @@ public class TankControlsTest {
                 return Direction.LEFT.ordinal();
             }
         };
-        TankControls controls = new TankControls(
-                input.input, player, List.of(computer), world::canMoveTo, random, world::add);
+        TankControls controls = new TankControls();
+        controls.addStrategy(new TankKeyboardController(input.input,
+                direction -> controls.submit(new MoveCommand(player, direction, world::canMoveTo))));
+        controls.addStrategy(new RandomTankController(computer, world::canMoveTo, random, world::add, controls::submit));
 
         input.held.add(RIGHT);
         controls.controlTanks();
@@ -49,5 +55,21 @@ public class TankControlsTest {
         world.update(0.4f);
         assertEquals(new GridPoint2(1, 1), player.getTileCoordinates());
         assertEquals(new GridPoint2(1, 0), computer.getTileCoordinates());
+    }
+
+    @Test public void customStrategiesCollectBeforeCommandsExecute() {
+        TankControls controls = new TankControls();
+        List<String> events = new ArrayList<>();
+        controls.addStrategy(() -> {
+            events.add("collect first");
+            controls.submit(() -> events.add("execute first"));
+        });
+        controls.addStrategy(() -> {
+            events.add("collect second");
+            controls.submit(() -> events.add("execute second"));
+        });
+
+        controls.controlTanks();
+        assertEquals(List.of("collect first", "collect second", "execute first", "execute second"), events);
     }
 }

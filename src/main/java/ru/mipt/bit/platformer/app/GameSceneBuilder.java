@@ -5,17 +5,26 @@ import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.utils.Disposable;
 
 import ru.mipt.bit.platformer.input.TankControls;
+import ru.mipt.bit.platformer.input.ai.RandomTankController;
+import ru.mipt.bit.platformer.input.command.MoveCommand;
+import ru.mipt.bit.platformer.input.command.ShootCommand;
+import ru.mipt.bit.platformer.input.command.ToggleHealthBarsCommand;
+import ru.mipt.bit.platformer.input.keyboard.KeyboardController;
+import ru.mipt.bit.platformer.input.keyboard.TankKeyboardController;
 import ru.mipt.bit.platformer.level.LevelGenerator;
 import ru.mipt.bit.platformer.model.level.LevelBounds;
 import ru.mipt.bit.platformer.model.level.LevelLayout;
 import ru.mipt.bit.platformer.model.obstacle.Tree;
 import ru.mipt.bit.platformer.model.tank.Tank;
 import ru.mipt.bit.platformer.rendering.GameWorldRenderer;
+import ru.mipt.bit.platformer.world.CombatSystem;
 import ru.mipt.bit.platformer.world.GameWorld;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import static com.badlogic.gdx.Input.Keys.L;
 
 public final class GameSceneBuilder {
     private static final int RANDOM_TANK_COUNT = 3;
@@ -41,20 +50,34 @@ public final class GameSceneBuilder {
         Random random = new Random();
 
         Tank player = createPlayer(layout);
-        List<Tank> computerTanks = spawnComputerTanks(layout, random);
-        List<Tank> tanks = collectTanks(player, computerTanks);
-        List<Tree> trees = createTrees(layout);
+        List<Tank> computerTanks = new RandomTankSpawner().spawn(layout, RANDOM_TANK_COUNT, random);
 
+        ToggleHealthBarsCommand toggleHealthBars = new ToggleHealthBarsCommand();
         GameWorld world = new GameWorld(new LevelBounds(layout.getWidth(), layout.getHeight()));
-        GameWorldRenderer worldRenderer = new SceneGraphicsBuilder().build(layout, ownedResources);
+        new CombatSystem(world);
+        GameWorldRenderer worldRenderer = new SceneGraphicsBuilder()
+                .build(layout, ownedResources, toggleHealthBars::isVisible);
         world.addListener(worldRenderer);
-        trees.forEach(world::add);
-        tanks.forEach(world::add);
-        TankControls controls = new TankControls(input, player, computerTanks, world::canMoveTo, random, world::add);
+        populateWorld(world, layout, player, computerTanks);
+
+        TankControls controls = new TankControls();
+        controls.addStrategy(new TankKeyboardController(input, direction -> {
+            if (!player.isDestroyed()) {
+                controls.submit(new MoveCommand(player, direction, world::canMoveTo));
+            }
+        }, () -> {
+            if (!player.isDestroyed()) {
+                controls.submit(new ShootCommand(player, world::add));
+            }
+        }));
+        for (Tank tank : computerTanks) {
+            controls.addStrategy(new RandomTankController(tank, world::canMoveTo, random, world::add, controls::submit));
+        }
+        Runnable inputHandler = createInputHandler(input, controls, toggleHealthBars);
 
         return new GameSession(
                 world,
-                controls::controlTanks,
+                inputHandler,
                 worldRenderer::render,
                 ownedResources);
     }
@@ -64,23 +87,21 @@ public final class GameSceneBuilder {
         return new Tank(position.x, position.y);
     }
 
-    private List<Tank> spawnComputerTanks(LevelLayout layout, Random random) {
-        return new RandomTankSpawner().spawn(layout, RANDOM_TANK_COUNT, random);
-    }
-
-    private List<Tank> collectTanks(Tank player, List<Tank> computerTanks) {
-        List<Tank> tanks = new ArrayList<>();
-        tanks.add(player);
-        tanks.addAll(computerTanks);
-        return tanks;
-    }
-
-    private List<Tree> createTrees(LevelLayout layout) {
-        List<Tree> trees = new ArrayList<>();
+    private void populateWorld(GameWorld world, LevelLayout layout, Tank player, List<Tank> computerTanks) {
         for (GridPoint2 position : layout.getTreePositions()) {
-            trees.add(new Tree(position.x, position.y));
+            world.add(new Tree(position.x, position.y));
         }
-        return trees;
+        world.add(player);
+        computerTanks.forEach(world::add);
+    }
+
+    private Runnable createInputHandler(Input input, TankControls controls, ToggleHealthBarsCommand toggleHealthBars) {
+        KeyboardController keyboard = new KeyboardController();
+        keyboard.bindJustPressed(toggleHealthBars, L);
+        return () -> {
+            keyboard.handleInput(input);
+            controls.controlTanks();
+        };
     }
 
     private void disposeFailedScene(List<Disposable> resources, Throwable failure) {

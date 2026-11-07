@@ -4,6 +4,8 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Graphics;
+import org.lwjgl.glfw.GLFW;
 import ru.mipt.bit.platformer.app.GameSceneBuilder;
 import ru.mipt.bit.platformer.app.GameSession;
 import ru.mipt.bit.platformer.level.FileLevelGenerator;
@@ -29,6 +31,16 @@ public class GameDesktopLauncher extends ApplicationAdapter {
             generator = new FileLevelGenerator(Gdx.files.internal(levelPath));
         }
         session = new GameSceneBuilder(generator).build(Gdx.input);
+        Lwjgl3Graphics graphics = (Lwjgl3Graphics) Gdx.graphics;
+        GLFW.glfwSetWindowAspectRatio(
+                graphics.getWindow().getWindowHandle(),
+                graphics.getWidth(), graphics.getHeight()
+        );
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        Gdx.gl.glViewport(0, 0, Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
     }
 
     @Override
@@ -45,7 +57,6 @@ public class GameDesktopLauncher extends ApplicationAdapter {
 
     public static void main(String[] args) {
         Lwjgl3ApplicationConfiguration windowConfig = new Lwjgl3ApplicationConfiguration();
-        windowConfig.setWindowedMode(1280, 1024);
         String levelPath = args.length == 0 ? "level.txt" : args[0];
         new Lwjgl3Application(new GameDesktopLauncher(levelPath), windowConfig);
     }
