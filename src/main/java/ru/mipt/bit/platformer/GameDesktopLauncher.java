@@ -14,6 +14,9 @@ import ru.mipt.bit.platformer.level.RandomLevelGenerator;
 
 import java.util.Random;
 
+/**
+ * Входной адаптер libGDX. Передаёт игре время между кадрами.
+ */
 public class GameDesktopLauncher extends ApplicationAdapter {
     private final String levelPath;
     private GameSession session;

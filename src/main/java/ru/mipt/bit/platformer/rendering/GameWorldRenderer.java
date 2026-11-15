@@ -12,6 +12,9 @@ import java.util.function.Function;
 
 import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
 
+/**
+ * Графический адаптер {@link WorldListener}. Обновляет список объектов для отрисовки.
+ */
 public final class GameWorldRenderer implements WorldListener {
     private final Batch batch;
     private final Runnable renderMap;

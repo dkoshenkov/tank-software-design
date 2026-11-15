@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+/**
+ * Адаптер клавиатуры. Передаёт команду, когда игрок нажимает или удерживает клавишу.
+ */
 public class KeyboardController {
     private final List<Binding> bindings = new ArrayList<>();
 

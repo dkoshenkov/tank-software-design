@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Адаптер {@link LevelGenerator}. Читает карту из текстового файла.
+ */
 public final class FileLevelGenerator implements LevelGenerator {
     private final FileHandle file;
 

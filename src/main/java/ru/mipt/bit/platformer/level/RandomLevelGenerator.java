@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Адаптер {@link LevelGenerator}. Создаёт случайную карту.
+ */
 public final class RandomLevelGenerator implements LevelGenerator {
     private final int width;
     private final int height;
