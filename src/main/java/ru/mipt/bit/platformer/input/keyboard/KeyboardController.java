@@ -3,6 +3,7 @@ package ru.mipt.bit.platformer.input.keyboard;
 import com.badlogic.gdx.Input;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class KeyboardController {
     private final List<Binding> bindings = new ArrayList<>();
@@ -16,9 +17,13 @@ public class KeyboardController {
     }
 
     public void handleInput(Input input) {
+        handleInput(input, Runnable::run);
+    }
+
+    public void handleInput(Input input, Consumer<Runnable> submit) {
         for (Binding binding : bindings) {
             if (isAnyKeyPressed(input, binding)) {
-                binding.action.run();
+                submit.accept(binding.action);
             }
         }
     }

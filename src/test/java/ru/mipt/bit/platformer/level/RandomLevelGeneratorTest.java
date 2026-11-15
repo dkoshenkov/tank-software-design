@@ -39,6 +39,19 @@ public class RandomLevelGeneratorTest {
     }
 
     @Test
+    public void playerCanLeaveTheCornerEvenWhenEveryTreeRollSucceeds() {
+        Random denseForest = new Random() {
+            @Override public int nextInt(int bound) { return 0; }
+            @Override public float nextFloat() { return 0f; }
+        };
+        LevelLayout layout = new RandomLevelGenerator(10, 8, denseForest).generate();
+        assertEquals(new GridPoint2(0, 0), layout.getPlayerPosition());
+        assertFalse(layout.getTreePositions().contains(new GridPoint2(1, 0)));
+        assertFalse(layout.getTreePositions().contains(new GridPoint2(0, 1)));
+        assertFalse(layout.getTreePositions().contains(new GridPoint2(1, 1)));
+    }
+
+    @Test
     public void singleTileLevelContainsOnlyPlayer() {
         LevelLayout layout = new RandomLevelGenerator(1, 1, new Random(42)).generate();
 

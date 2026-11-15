@@ -1,7 +1,9 @@
 package ru.mipt.bit.platformer.app;
 
 import com.badlogic.gdx.math.GridPoint2;
+import ru.mipt.bit.platformer.model.level.LevelBounds;
 import ru.mipt.bit.platformer.model.level.LevelLayout;
+import ru.mipt.bit.platformer.model.tank.Direction;
 import ru.mipt.bit.platformer.model.tank.Tank;
 
 import java.util.ArrayList;
@@ -16,24 +18,32 @@ public final class RandomTankSpawner {
         if (count < 0) {
             throw new IllegalArgumentException("Tank count must not be negative");
         }
-        List<GridPoint2> freeTiles = findFreeTiles(layout);
+        List<GridPoint2> freeTiles = findReachableTiles(layout);
         Collections.shuffle(freeTiles, random);
         return createTanks(freeTiles, count);
     }
 
-    private List<GridPoint2> findFreeTiles(LevelLayout layout) {
-        Set<GridPoint2> occupied = new HashSet<>(layout.getTreePositions());
-        occupied.add(layout.getPlayerPosition());
+    private List<GridPoint2> findReachableTiles(LevelLayout layout) {
+        Set<GridPoint2> visited = new HashSet<>(layout.getTreePositions());
+        GridPoint2 start = layout.getPlayerPosition();
+        visited.add(start);
         List<GridPoint2> freeTiles = new ArrayList<>();
-        for (int y = 0; y < layout.getHeight(); y++) {
-            for (int x = 0; x < layout.getWidth(); x++) {
-                GridPoint2 tile = new GridPoint2(x, y);
-                if (!occupied.contains(tile)) {
-                    freeTiles.add(tile);
-                }
-            }
+        LevelBounds bounds = new LevelBounds(layout.getWidth(), layout.getHeight());
+        addReachableNeighbors(start, bounds, visited, freeTiles);
+        for (int i = 0; i < freeTiles.size(); i++) {
+            addReachableNeighbors(freeTiles.get(i), bounds, visited, freeTiles);
         }
         return freeTiles;
+    }
+
+    private void addReachableNeighbors(GridPoint2 tile, LevelBounds bounds, Set<GridPoint2> visited,
+                                       List<GridPoint2> freeTiles) {
+        for (Direction direction : Direction.values()) {
+            GridPoint2 next = direction.getAdjacentTileCoordinates(tile);
+            if (bounds.containsTile(next) && visited.add(next)) {
+                freeTiles.add(next);
+            }
+        }
     }
 
     private List<Tank> createTanks(List<GridPoint2> freeTiles, int count) {

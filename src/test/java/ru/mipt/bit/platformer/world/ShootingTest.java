@@ -34,6 +34,71 @@ public class ShootingTest {
         });
     }
 
+    private Tank oneDamageShooter() {
+        return new Tank(0, 0, 0.4f, 2, 1);
+    }
+
+    @Test public void simultaneousHitsDealBothAmountsOfDamageInEitherRegistrationOrder() {
+        Tank shooter = new Tank(0, 0);
+        for (boolean reverseOrder : new boolean[]{false, true}) {
+            Tank target = new Tank(2, 1);
+            Bullet horizontal = new Bullet(shooter, new GridPoint2(1, 1), Direction.RIGHT, 10);
+            Bullet vertical = new Bullet(shooter, new GridPoint2(2, 0), Direction.UP, 30);
+            world.add(target);
+            world.add(reverseOrder ? vertical : horizontal);
+            world.add(reverseOrder ? horizontal : vertical);
+
+            world.update(0.1f);
+
+            assertEquals(60, target.getHealth());
+            assertEquals(List.of(target), visible);
+            world.remove(target);
+        }
+    }
+
+    @Test public void simultaneousLethalHitsCannotOverflowOrDestroyTheSameTankTwice() {
+        Tank shooter = new Tank(0, 0);
+        Tank target = new Tank(2, 1);
+        world.add(target);
+        world.add(new Bullet(shooter, new GridPoint2(1, 1), Direction.RIGHT, Integer.MAX_VALUE));
+        world.add(new Bullet(shooter, new GridPoint2(2, 0), Direction.UP, Integer.MAX_VALUE));
+
+        world.update(0.1f);
+
+        assertEquals(Integer.MIN_VALUE, target.getHealth());
+        assertTrue(visible.isEmpty());
+        assertTrue(world.canMoveTo(target.getTileCoordinates()));
+    }
+
+    @Test public void crossingTheOutgoingShotStopsAnIncomingShotBeforeItReachesTheTank() {
+        Tank target = new Tank(3, 1);
+        world.add(target);
+        target.tryMove(Direction.LEFT, world::canMoveTo);
+        target.shoot(world::add);
+        world.add(new Bullet(new Tank(0, 1), new GridPoint2(1, 1), Direction.RIGHT, 10));
+
+        world.update(0.1f);
+
+        assertEquals(100, target.getHealth());
+        assertEquals(List.of(target), visible);
+    }
+
+    @Test public void fourDefaultShotsDestroyAFullHealthTank() {
+        Tank player = new Tank(0, 0);
+        Tank target = new Tank(6, 0);
+        world.add(player);
+        world.add(target);
+        for (int health : new int[]{70, 40, 10}) {
+            player.shoot(world::add);
+            world.update(0.51f);
+            assertEquals(health, target.getHealth());
+            assertTrue(world.contains(target));
+        }
+        player.shoot(world::add);
+        world.update(0.51f);
+        assertFalse(world.contains(target));
+    }
+
     @Test public void adjacentHitUsesConfiguredDamageAndDeathRequiresNegativeHealth() {
         Tank shooter = new Tank(0, 0, 0.4f, 2, 2);
         Tank target = new Tank(1, 0, 0.4f, 2);
@@ -54,7 +119,7 @@ public class ShootingTest {
     }
 
     @Test public void largeDeltaChecksEveryCellAndStopsAtFirstObstacle() {
-        Tank shooter = new Tank(0, 0);
+        Tank shooter = oneDamageShooter();
         Tree tree = new Tree(3, 0);
         Tank target = new Tank(5, 0, 0.4f, 2);
         world.add(shooter);
@@ -96,7 +161,7 @@ public class ShootingTest {
     }
 
     @Test public void movingOwnerDoesNotAbsorbItsOwnShot() {
-        Tank shooter = new Tank(0, 0, 0.4f, 2);
+        Tank shooter = oneDamageShooter();
         Tank target = new Tank(2, 0, 0.4f, 2);
         world.add(shooter);
         world.add(target);
@@ -148,23 +213,22 @@ public class ShootingTest {
         assertEquals(new GridPoint2(6, 1), visible.get(2).getTileCoordinates());
         input.justPressed.add(SPACE);
         controls.controlTanks();
-        // The second AI shot collides with the first; the player's shot survives.
+        assertEquals(4, visible.size());
+        assertEquals(new GridPoint2(1, 0), visible.get(3).getTileCoordinates());
+        input.justPressed.clear();
+        world.update(2f);
+        controls.controlTanks();
         assertEquals(3, visible.size());
-        assertEquals(new GridPoint2(1, 0), visible.get(2).getTileCoordinates());
+        assertEquals(new GridPoint2(6, 1), visible.get(2).getTileCoordinates());
     }
 
     private TankControls controls(TestInput input, Tank player, Tank enemy, Random random) {
         TankControls controls = new TankControls();
-        controls.addStrategy(new TankKeyboardController(input.input, direction -> {
-            if (!player.isDestroyed()) {
-                controls.submit(new MoveCommand(player, direction, world::canMoveTo));
-            }
-        }, () -> {
-            if (!player.isDestroyed()) {
-                controls.submit(new ShootCommand(player, world::add));
-            }
-        }));
-        controls.addStrategy(new RandomTankController(enemy, world::canMoveTo, random, world::add, controls::submit));
+        controls.addStrategy(TankKeyboardController.withCommands(input.input,
+                direction -> new MoveCommand(player, direction, world::canMoveTo),
+                new ShootCommand(player, world::add)));
+        controls.addStrategy(new RandomTankController(enemy, world::canMoveTo, random, world::add,
+                world::getElapsedSeconds));
         return controls;
     }
 
@@ -181,7 +245,7 @@ public class ShootingTest {
     }
 
     @Test public void hitsTheReservedDestinationOfAMovingTank() {
-        Tank shooter = new Tank(0, 0);
+        Tank shooter = oneDamageShooter();
         Tank target = new Tank(2, 1, 0.4f, 2);
         world.add(shooter);
         world.add(target);
@@ -210,7 +274,7 @@ public class ShootingTest {
     private int shootAtDepartingTank(float elapsedBeforeShot, float... frames) {
         GameWorld scene = new GameWorld(new LevelBounds(12, 3));
         new CombatSystem(scene);
-        Tank shooter = new Tank(0, 0);
+        Tank shooter = oneDamageShooter();
         Tank target = new Tank(2, 0, 0.4f, 2);
         scene.add(shooter);
         scene.add(target);
@@ -294,7 +358,7 @@ public class ShootingTest {
         GameWorld scene = new GameWorld(List.of(target), new LevelBounds(3, 1), List.of());
         new CombatSystem(scene);
         assertFalse(scene.canMoveTo(new GridPoint2(1, 0)));
-        new Tank(0, 0).shoot(scene::add);
+        oneDamageShooter().shoot(scene::add);
         assertEquals(1, target.getHealth());
     }
 

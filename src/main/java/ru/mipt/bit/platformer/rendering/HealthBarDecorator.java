@@ -44,18 +44,30 @@ public final class HealthBarDecorator implements ObjectView {
     }
 
     private void renderHealthBar(Batch batch) {
+        positionHealthBar();
+        drawHealthBar(batch);
+    }
+
+    private void positionHealthBar() {
         positioning.interpolateCenter(bounds, motion.getTileCoordinates(),
                 motion.getDestinationTileCoordinates(), motion.getMovementProgress());
         bounds.y += OFFSET_Y;
+    }
+
+    private void drawHealthBar(Batch batch) {
         float previousColor = batch.getPackedColor();
         try {
-            batch.setColor(Color.DARK_GRAY);
-            batch.draw(pixel, bounds.x, bounds.y, BAR_WIDTH, BAR_HEIGHT);
-            batch.setColor(Color.GREEN);
-            batch.draw(pixel, bounds.x, bounds.y, BAR_WIDTH * healthFraction(), BAR_HEIGHT);
+            drawHealthBarSegments(batch);
         } finally {
             batch.setPackedColor(previousColor);
         }
+    }
+
+    private void drawHealthBarSegments(Batch batch) {
+        batch.setColor(Color.DARK_GRAY);
+        batch.draw(pixel, bounds.x, bounds.y, BAR_WIDTH, BAR_HEIGHT);
+        batch.setColor(Color.GREEN);
+        batch.draw(pixel, bounds.x, bounds.y, BAR_WIDTH * healthFraction(), BAR_HEIGHT);
     }
 
     private float healthFraction() {

@@ -53,33 +53,49 @@ public final class GameSceneBuilder {
         List<Tank> computerTanks = new RandomTankSpawner().spawn(layout, RANDOM_TANK_COUNT, random);
 
         ToggleHealthBarsCommand toggleHealthBars = new ToggleHealthBarsCommand();
-        GameWorld world = new GameWorld(new LevelBounds(layout.getWidth(), layout.getHeight()));
-        new CombatSystem(world);
-        GameWorldRenderer worldRenderer = new SceneGraphicsBuilder()
-                .build(layout, ownedResources, toggleHealthBars::isVisible);
-        world.addListener(worldRenderer);
+        GameWorld world = createWorld(layout);
+        GameWorldRenderer worldRenderer = attachRenderer(world, layout, player, ownedResources, toggleHealthBars);
         populateWorld(world, layout, player, computerTanks);
 
-        TankControls controls = new TankControls();
-        controls.addStrategy(new TankKeyboardController(input, direction -> {
-            if (!player.isDestroyed()) {
-                controls.submit(new MoveCommand(player, direction, world::canMoveTo));
-            }
-        }, () -> {
-            if (!player.isDestroyed()) {
-                controls.submit(new ShootCommand(player, world::add));
-            }
-        }));
-        for (Tank tank : computerTanks) {
-            controls.addStrategy(new RandomTankController(tank, world::canMoveTo, random, world::add, controls::submit));
-        }
+        TankControls controls = createTankControls(input, player, world, computerTanks, random);
         Runnable inputHandler = createInputHandler(input, controls, toggleHealthBars);
+        return new GameSession(world, inputHandler, worldRenderer::render, ownedResources);
+    }
 
-        return new GameSession(
-                world,
-                inputHandler,
-                worldRenderer::render,
-                ownedResources);
+    private GameWorld createWorld(LevelLayout layout) {
+        GameWorld world = new GameWorld(new LevelBounds(layout.getWidth(), layout.getHeight()));
+        new CombatSystem(world);
+        return world;
+    }
+
+    private GameWorldRenderer attachRenderer(GameWorld world, LevelLayout layout, Tank player,
+                                             List<Disposable> ownedResources, ToggleHealthBarsCommand toggleHealthBars) {
+        GameWorldRenderer renderer = new SceneGraphicsBuilder()
+                .build(layout, player, ownedResources, toggleHealthBars::isVisible);
+        world.addListener(renderer);
+        return renderer;
+    }
+
+    private static TankControls createTankControls(Input input, Tank player, GameWorld world,
+                                                   List<Tank> computerTanks, Random random) {
+        TankControls controls = new TankControls();
+        bindPlayerControls(controls, input, player, world);
+        attachComputerControllers(controls, computerTanks, world, random);
+        return controls;
+    }
+
+    private static void bindPlayerControls(TankControls controls, Input input, Tank player, GameWorld world) {
+        controls.addStrategy(TankKeyboardController.withCommands(input,
+                direction -> new MoveCommand(player, direction, world::canMoveTo),
+                new ShootCommand(player, world::add)));
+    }
+
+    private static void attachComputerControllers(TankControls controls, List<Tank> computerTanks,
+                                                  GameWorld world, Random random) {
+        for (Tank tank : computerTanks) {
+            controls.addStrategy(new RandomTankController(tank, world::canMoveTo, random, world::add,
+                    world::getElapsedSeconds));
+        }
     }
 
     private Tank createPlayer(LevelLayout layout) {
@@ -95,11 +111,11 @@ public final class GameSceneBuilder {
         computerTanks.forEach(world::add);
     }
 
-    private Runnable createInputHandler(Input input, TankControls controls, ToggleHealthBarsCommand toggleHealthBars) {
+    static Runnable createInputHandler(Input input, TankControls controls, ToggleHealthBarsCommand toggleHealthBars) {
         KeyboardController keyboard = new KeyboardController();
         keyboard.bindJustPressed(toggleHealthBars, L);
         return () -> {
-            keyboard.handleInput(input);
+            keyboard.handleInput(input, controls::submit);
             controls.controlTanks();
         };
     }

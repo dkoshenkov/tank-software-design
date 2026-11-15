@@ -16,13 +16,21 @@ public final class TankControls {
     }
 
     public void controlTanks() {
+        List<Runnable> frameCommands = new ArrayList<>(commands);
         commands.clear();
+        collectCommands(frameCommands);
+        executeCommands(frameCommands);
+    }
+
+    private void collectCommands(List<Runnable> frameCommands) {
         for (TankControlStrategy strategy : strategies) {
-            strategy.controlTank();
+            strategy.collectCommands(frameCommands::add);
         }
-        for (Runnable command : commands) {
+    }
+
+    private void executeCommands(List<Runnable> frameCommands) {
+        for (Runnable command : frameCommands) {
             command.run();
         }
-        commands.clear();
     }
 }

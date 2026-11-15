@@ -20,8 +20,16 @@ public class TankRenderer implements ObjectView {
 
     @Override
     public void render(Batch batch) {
+        positionTank();
+        drawTank(batch);
+    }
+
+    private void positionTank() {
         tilePositioning.interpolateCenter(renderBounds, tank.getTileCoordinates(),
                 tank.getDestinationTileCoordinates(), tank.getMovementProgress());
+    }
+
+    private void drawTank(Batch batch) {
         float width = renderBounds.width;
         float height = renderBounds.height;
         batch.draw(

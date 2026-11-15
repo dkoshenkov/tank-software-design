@@ -24,13 +24,18 @@ public class GameDesktopLauncher extends ApplicationAdapter {
 
     @Override
     public void create() {
-        LevelGenerator generator;
+        session = new GameSceneBuilder(createLevelGenerator()).build(Gdx.input);
+        preserveWindowAspectRatio();
+    }
+
+    private LevelGenerator createLevelGenerator() {
         if (levelPath.equals("random")) {
-            generator = new RandomLevelGenerator(10, 8, new Random());
-        } else {
-            generator = new FileLevelGenerator(Gdx.files.internal(levelPath));
+            return new RandomLevelGenerator(10, 8, new Random());
         }
-        session = new GameSceneBuilder(generator).build(Gdx.input);
+        return new FileLevelGenerator(Gdx.files.internal(levelPath));
+    }
+
+    private void preserveWindowAspectRatio() {
         Lwjgl3Graphics graphics = (Lwjgl3Graphics) Gdx.graphics;
         GLFW.glfwSetWindowAspectRatio(
                 graphics.getWindow().getWindowHandle(),

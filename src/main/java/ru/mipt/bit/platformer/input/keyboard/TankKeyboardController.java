@@ -4,12 +4,12 @@ import ru.mipt.bit.platformer.model.tank.Direction;
 import com.badlogic.gdx.Input;
 import ru.mipt.bit.platformer.input.TankControlStrategy;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static com.badlogic.gdx.Input.Keys.*;
 
 public class TankKeyboardController implements TankControlStrategy {
     private final Input input;
-    private final Runnable shoot;
     private final KeyboardController keyboardController = new KeyboardController();
 
     public TankKeyboardController(Input input, Consumer<Direction> move) {
@@ -17,19 +17,30 @@ public class TankKeyboardController implements TankControlStrategy {
     }
 
     public TankKeyboardController(Input input, Consumer<Direction> move, Runnable shoot) {
+        this(input);
+        bindCommands(direction -> () -> move.accept(direction), shoot);
+    }
+
+    public static TankKeyboardController withCommands(Input input, Function<Direction, Runnable> move, Runnable shoot) {
+        TankKeyboardController controller = new TankKeyboardController(input);
+        controller.bindCommands(move, shoot);
+        return controller;
+    }
+
+    private TankKeyboardController(Input input) {
         this.input = input;
-        this.shoot = shoot;
-        keyboardController.bindHeld(() -> move.accept(Direction.UP), UP, W);
-        keyboardController.bindHeld(() -> move.accept(Direction.LEFT), LEFT, A);
-        keyboardController.bindHeld(() -> move.accept(Direction.DOWN), DOWN, S);
-        keyboardController.bindHeld(() -> move.accept(Direction.RIGHT), RIGHT, D);
+    }
+
+    private void bindCommands(Function<Direction, Runnable> move, Runnable shoot) {
+        keyboardController.bindHeld(move.apply(Direction.UP), UP, W);
+        keyboardController.bindHeld(move.apply(Direction.LEFT), LEFT, A);
+        keyboardController.bindHeld(move.apply(Direction.DOWN), DOWN, S);
+        keyboardController.bindHeld(move.apply(Direction.RIGHT), RIGHT, D);
+        keyboardController.bindJustPressed(shoot, SPACE);
     }
 
     @Override
-    public void controlTank() {
-        keyboardController.handleInput(input);
-        if (input.isKeyJustPressed(SPACE)) {
-            shoot.run();
-        }
+    public void collectCommands(Consumer<Runnable> submit) {
+        keyboardController.handleInput(input, submit);
     }
 }
