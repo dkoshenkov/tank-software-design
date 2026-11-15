@@ -222,6 +222,23 @@ public class ShootingTest {
         assertEquals(new GridPoint2(6, 1), visible.get(2).getTileCoordinates());
     }
 
+    @Test public void hitDisablesAiShotAlreadyCollectedForThisFrame() {
+        Tank player = new Tank(0, 0, 0.4f, 100, 86);
+        Tank enemy = new Tank(1, 0);
+        world.add(player);
+        world.add(enemy);
+        TestInput input = new TestInput();
+        input.justPressed.add(SPACE);
+        Random chooseShoot = new Random() {
+            @Override public int nextInt(int bound) { return bound - 1; }
+        };
+
+        controls(input, player, enemy, chooseShoot).controlTanks();
+
+        assertEquals(14, enemy.getHealth());
+        assertEquals(List.of(player, enemy), visible);
+    }
+
     private TankControls controls(TestInput input, Tank player, Tank enemy, Random random) {
         TankControls controls = new TankControls();
         controls.addStrategy(TankKeyboardController.withCommands(input.input,
@@ -257,21 +274,24 @@ public class ShootingTest {
     }
 
     @Test public void hitsDepartingTankBeforeItsMovementFinishesWithinOneFrame() {
-        assertEquals(1, shootAtDepartingTank(0f, 0.4f));
-        assertEquals(1, shootAtDepartingTank(0f, 0.1f, 0.1f, 0.1f, 0.1f));
+        float expectedProgress = 0.1f / 0.4f + 0.3f / 0.8f;
+        assertDepartingTankAfterShot(0f, 1, expectedProgress, 0.4f);
+        assertDepartingTankAfterShot(0f, 1, expectedProgress, 0.1f, 0.1f, 0.1f, 0.1f);
     }
 
     @Test public void hitsDepartingTankDuringSixteenMillisecondFrame() {
-        assertEquals(1, shootAtDepartingTank(0.295f, 0.09f, 0.016f));
-        assertEquals(1, shootAtDepartingTank(0.295f, 0.09f, 0.01f, 0.006f));
+        float expectedProgress = 0.395f / 0.4f + 0.006f / 0.8f;
+        assertDepartingTankAfterShot(0.295f, 1, expectedProgress, 0.09f, 0.016f);
+        assertDepartingTankAfterShot(0.295f, 1, expectedProgress, 0.09f, 0.01f, 0.006f);
     }
 
     @Test public void missesTankThatLeavesBeforeTheBulletArrives() {
-        assertEquals(2, shootAtDepartingTank(0.35f, 0.4f));
-        assertEquals(2, shootAtDepartingTank(0.35f, 0.1f, 0.1f, 0.1f, 0.1f));
+        assertDepartingTankAfterShot(0.35f, 2, 1f, 0.4f);
+        assertDepartingTankAfterShot(0.35f, 2, 1f, 0.1f, 0.1f, 0.1f, 0.1f);
     }
 
-    private int shootAtDepartingTank(float elapsedBeforeShot, float... frames) {
+    private void assertDepartingTankAfterShot(float elapsedBeforeShot, int expectedHealth,
+                                              float expectedProgress, float... frames) {
         GameWorld scene = new GameWorld(new LevelBounds(12, 3));
         new CombatSystem(scene);
         Tank shooter = oneDamageShooter();
@@ -284,8 +304,9 @@ public class ShootingTest {
         for (float frame : frames) {
             scene.update(frame);
         }
-        assertEquals(new GridPoint2(2, 1), target.getTileCoordinates());
-        return target.getHealth();
+        assertEquals(expectedHealth, target.getHealth());
+        assertEquals(expectedProgress, target.getMovementProgress(), 0.00001f);
+        assertEquals(new GridPoint2(2, expectedProgress == 1f ? 1 : 0), target.getTileCoordinates());
     }
 
     @Test public void lateSubscriptionReplaysObjectsOnceAndCanUnsubscribe() {

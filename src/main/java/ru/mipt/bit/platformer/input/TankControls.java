@@ -11,6 +11,10 @@ public final class TankControls {
         strategies.add(strategy);
     }
 
+    /**
+     * Входной порт. Ставит команду в очередь.
+     * @param command команда для следующего вызова {@link #controlTanks()}
+     */
     public void submit(Runnable command) {
         commands.add(command);
     }

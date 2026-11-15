@@ -2,6 +2,11 @@ package ru.mipt.bit.platformer.model.tank;
 
 import com.badlogic.gdx.math.GridPoint2;
 import org.junit.Test;
+import ru.mipt.bit.platformer.model.bullet.Bullet;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 public class TankTest {
@@ -18,6 +23,42 @@ public class TankTest {
         assertEquals(60, tank.getHealth());
         assertEquals(80, tank.getMaxHealth());
         assertEquals(100, new Tank(0, 0).getMaxHealth());
+    }
+
+    @Test public void movementSpeedDependsOnFractionOfInitialHealth() {
+        assertMovementAtHealth(141, 0.5f);
+        assertMovementAtHealth(140, 0.25f);
+        assertMovementAtHealth(30, 0.25f);
+        assertMovementAtHealth(29, 0.5f / 3f);
+    }
+
+    private void assertMovementAtHealth(int health, float expectedProgress) {
+        Tank tank = new Tank(0, 0, 1f, 200);
+        tank.takeDamage(200 - health);
+        tank.tryMove(Direction.RIGHT, tile -> true);
+        tank.update(0.5f);
+        assertEquals("Remaining health: " + health, expectedProgress, tank.getMovementProgress(), 0.00001f);
+    }
+
+    @Test public void canShootAtFifteenPercentHealthButNotBelow() {
+        Tank tank = new Tank(0, 0, 1f, 200);
+        List<Bullet> shots = new ArrayList<>();
+        tank.shoot(shots::add);
+        tank.takeDamage(170);
+        tank.shoot(shots::add);
+        assertEquals(2, shots.size());
+
+        tank.takeDamage(1);
+        tank.shoot(shots::add);
+        assertEquals(2, shots.size());
+    }
+
+    @Test public void tankStartingWithZeroHealthMovesAtHeavySpeedAndCannotShoot() {
+        Tank tank = new Tank(0, 0, 1f, 0);
+        tank.shoot(bullet -> fail("Heavy tank fired"));
+        tank.tryMove(Direction.RIGHT, tile -> true);
+        tank.update(1.5f);
+        assertEquals(0.5f, tank.getMovementProgress(), 0.00001f);
     }
 
     @Test public void startsIdleAtRequestedPositionFacingRight() {

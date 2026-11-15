@@ -21,6 +21,7 @@ public class Tank implements Updatable, MotionState, TileBlocker {
 
     private int health;
     private final int maxHealth;
+    private TankState state;
     private final int bulletDamage;
     private final GridPoint2 tileCoordinates;
     private final GridPoint2 destinationTileCoordinates;
@@ -45,6 +46,7 @@ public class Tank implements Updatable, MotionState, TileBlocker {
         this.bulletDamage = bulletDamage;
         this.health = health;
         this.maxHealth = health;
+        this.state = DamageState.forHealth(health, maxHealth);
         tileCoordinates = new GridPoint2(tileX, tileY);
         destinationTileCoordinates = new GridPoint2(tileCoordinates);
         this.moveDurationSeconds = moveDurationSeconds;
@@ -76,8 +78,8 @@ public class Tank implements Updatable, MotionState, TileBlocker {
 
     public void shoot(Consumer<Bullet> registerBullet) {
         if (!isDestroyed()) {
-            registerBullet.accept(new Bullet(this,
-                    direction.getAdjacentTileCoordinates(tileCoordinates), direction, bulletDamage));
+            state.shoot(() -> registerBullet.accept(new Bullet(this,
+                    direction.getAdjacentTileCoordinates(tileCoordinates), direction, bulletDamage)));
         }
     }
 
@@ -86,6 +88,7 @@ public class Tank implements Updatable, MotionState, TileBlocker {
             throw new IllegalArgumentException("Damage must be positive");
         }
         health = (int) Math.max(Integer.MIN_VALUE, (long) health - damage);
+        state = DamageState.forHealth(health, maxHealth);
     }
 
     public int getHealth() {
@@ -102,7 +105,7 @@ public class Tank implements Updatable, MotionState, TileBlocker {
 
     @Override
     public void update(float deltaSeconds) {
-        movementProgress = clamp(movementProgress + deltaSeconds / moveDurationSeconds,
+        movementProgress = clamp(movementProgress + state.movementIncrement(deltaSeconds, moveDurationSeconds),
                 MOVEMENT_START, MOVEMENT_COMPLETE);
         if (!isMoving()) {
             tileCoordinates.set(destinationTileCoordinates);

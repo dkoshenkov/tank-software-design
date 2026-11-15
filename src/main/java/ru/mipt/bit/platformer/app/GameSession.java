@@ -12,6 +12,12 @@ public final class GameSession implements Disposable {
     private final Runnable renderScene;
     private final List<Disposable> ownedResources;
 
+    /**
+     * @param world игровой мир
+     * @param updateControls выходной порт для обработки команд
+     * @param renderScene выходной порт для отрисовки кадра
+     * @param ownedResources ресурсы, которые сессия освобождает при закрытии
+     */
     GameSession(GameWorld world, Runnable updateControls,
                 Runnable renderScene, List<Disposable> ownedResources) {
         this.world = world;
@@ -20,6 +26,10 @@ public final class GameSession implements Disposable {
         this.ownedResources = new ArrayList<>(ownedResources);
     }
 
+    /**
+     * Входной порт. Обрабатывает команды, обновляет мир и рисует кадр.
+     * @param deltaSeconds сколько секунд прошло с прошлого кадра
+     */
     public void renderFrame(float deltaSeconds) {
         updateControls.run();
         world.update(deltaSeconds);

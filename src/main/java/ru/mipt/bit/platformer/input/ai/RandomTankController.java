@@ -14,6 +14,9 @@ import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 import java.util.function.Predicate;
 
+/**
+ * Адаптер {@link TankControlStrategy}. Выбирает случайные команды для танка ИИ.
+ */
 public final class RandomTankController implements TankControlStrategy {
     private static final double MIN_DECISION_INTERVAL_SECONDS = 1.2;
     private static final double MAX_DECISION_INTERVAL_SECONDS = 1.8;

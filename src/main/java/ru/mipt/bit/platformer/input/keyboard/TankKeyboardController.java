@@ -8,6 +8,9 @@ import java.util.function.Function;
 
 import static com.badlogic.gdx.Input.Keys.*;
 
+/**
+ * Адаптер {@link TankControlStrategy}. По нажатию клавиш даёт танку команду ехать или стрелять.
+ */
 public class TankKeyboardController implements TankControlStrategy {
     private final Input input;
     private final KeyboardController keyboardController = new KeyboardController();
