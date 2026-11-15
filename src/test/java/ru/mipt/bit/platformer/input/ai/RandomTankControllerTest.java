@@ -16,7 +16,7 @@ import java.util.function.Predicate;
 import static org.junit.Assert.*;
 
 public class RandomTankControllerTest {
-    @Test public void waitsForArrivalBeforeIssuingAnotherMove() {
+    @Test public void pausesOnTheNewTileBeforeIssuingAnotherMove() {
         Tank tank = new Tank(0, 0) {
             @Override
             public void tryMove(Direction direction, Predicate<GridPoint2> canMoveTo) {
@@ -30,13 +30,22 @@ public class RandomTankControllerTest {
                 return Direction.RIGHT.ordinal();
             }
         };
-        RandomTankController controller = new RandomTankController(tank, tile -> true, random, bullet -> { });
+        GameWorld world = new GameWorld(List.of(tank), new LevelBounds(4, 1), List.of(tank));
+        RandomTankController controller = new RandomTankController(tank, world::canMoveTo, random, world::add,
+                Runnable::run, world::getElapsedSeconds);
         controller.controlTank();
-        tank.update(0.2f);
+        world.update(0.2f);
         controller.controlTank();
         assertEquals(new GridPoint2(1, 0), tank.getDestinationTileCoordinates());
         assertEquals(0.5f, tank.getMovementProgress(), 0f);
-        tank.update(0.2f);
+        world.update(0.2f);
+        controller.controlTank();
+        assertFalse(tank.isMoving());
+        world.update(0.79f);
+        controller.controlTank();
+        assertEquals(new GridPoint2(1, 0), tank.getTileCoordinates());
+        assertFalse(tank.isMoving());
+        world.update(0.62f);
         controller.controlTank();
         assertEquals(new GridPoint2(2, 0), tank.getDestinationTileCoordinates());
     }
@@ -44,7 +53,8 @@ public class RandomTankControllerTest {
     @Test public void aiRespectsObstaclesAndAllMapEdges() {
         Tank tank = new Tank(0, 0);
         GameWorld world = new GameWorld(List.of(tank), new LevelBounds(2, 1), List.of(tank, new Tree(1, 0)));
-        TankControlStrategy ai = new RandomTankController(tank, world::canMoveTo, new Random(42), world::add);
+        TankControlStrategy ai = new RandomTankController(tank, world::canMoveTo, new Random(42), world::add,
+                Runnable::run, world::getElapsedSeconds);
         for (int i = 0; i < 100; i++) {
             ai.controlTank();
             world.update(0.4f);

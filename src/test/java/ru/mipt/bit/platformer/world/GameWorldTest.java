@@ -28,6 +28,22 @@ public class GameWorldTest {
         assertEquals(List.of("first:0.25", "second:0.25"), calls);
     }
 
+    @Test public void genericWorldRegistersAllRolesWithoutCombatRules() {
+        Tank tank = new Tank(0, 0, 0.4f, 0);
+        tank.takeDamage(1);
+        GameWorld world = new GameWorld(List.of(tank), new LevelBounds(2, 1), List.of(tank));
+        List<Object> added = new ArrayList<>();
+        world.addListener(new WorldListener() {
+            public void objectAdded(ru.mipt.bit.platformer.model.TilePosition object) { added.add(object); }
+            public void objectRemoved(ru.mipt.bit.platformer.model.TilePosition object) { added.remove(object); }
+        });
+        world.update(0f);
+        assertEquals(List.of(tank), added);
+        assertFalse(world.canMoveTo(new GridPoint2(0, 0)));
+        world.remove(tank);
+        assertTrue(world.canMoveTo(new GridPoint2(0, 0)));
+    }
+
     @Test public void rejectsAllFourOutsideEdgesAndAllowsCorners() {
         GameWorld world = new GameWorld(List.of(new Tank(0, 0)), new LevelBounds(10, 8),
                 List.of(new Tree(1, 3)));
@@ -35,7 +51,8 @@ public class GameWorldTest {
         for (int[] p : outside) {
             assertFalse(world.canMoveTo(new GridPoint2(p[0], p[1])));
         }
-        int[][] corners = {{0,0}, {9,0}, {0,7}, {9,7}};
+        assertFalse(world.canMoveTo(new GridPoint2(0, 0)));
+        int[][] corners = {{9,0}, {0,7}, {9,7}};
         for (int[] p : corners) {
             assertTrue(world.canMoveTo(new GridPoint2(p[0], p[1])));
         }
@@ -90,7 +107,7 @@ public class GameWorldTest {
         GameWorld world = new GameWorld(List.of(new Tank(0, 0)), onlyFirstColumn, blockers);
         blockers.clear();
 
-        assertTrue(world.canMoveTo(new GridPoint2(0, 0)));
+        assertFalse(world.canMoveTo(new GridPoint2(0, 0)));
         assertFalse(world.canMoveTo(new GridPoint2(0, 1)));
         assertFalse(world.canMoveTo(new GridPoint2(1, 0)));
     }

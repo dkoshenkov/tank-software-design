@@ -3,6 +3,8 @@ package ru.mipt.bit.platformer.app;
 import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.utils.Disposable;
 import org.junit.Test;
+import ru.mipt.bit.platformer.input.TankControls;
+import ru.mipt.bit.platformer.input.command.ToggleHealthBarsCommand;
 import ru.mipt.bit.platformer.input.keyboard.TankKeyboardController;
 import ru.mipt.bit.platformer.input.keyboard.TestInput;
 import ru.mipt.bit.platformer.model.level.LevelBounds;
@@ -12,10 +14,36 @@ import ru.mipt.bit.platformer.world.GameWorld;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.badlogic.gdx.Input.Keys.L;
 import static com.badlogic.gdx.Input.Keys.RIGHT;
 import static org.junit.Assert.*;
 
 public class GameSessionTest {
+    @Test public void sceneDefersHealthBarToggleUntilAllStrategiesHaveChosen() {
+        TestInput input = new TestInput();
+        TankControls controls = new TankControls();
+        ToggleHealthBarsCommand bars = new ToggleHealthBarsCommand();
+        List<Boolean> visibleDuringSelection = new ArrayList<>();
+        List<Boolean> visibleDuringExecution = new ArrayList<>();
+        controls.addStrategy(submit -> {
+            visibleDuringSelection.add(bars.isVisible());
+            submit.accept(() -> visibleDuringExecution.add(bars.isVisible()));
+        });
+        Runnable handleInput = GameSceneBuilder.createInputHandler(input.input, controls, bars);
+
+        input.justPressed.add(L);
+        handleInput.run();
+        input.justPressed.clear();
+        input.held.add(L);
+        handleInput.run();
+        input.held.clear();
+        input.justPressed.add(L);
+        handleInput.run();
+
+        assertEquals(List.of(false, true, true), visibleDuringSelection);
+        assertEquals(List.of(true, true, false), visibleDuringExecution);
+    }
+
     @Test public void frameHandlesInputThenUpdatesThenRenders() {
         Tank tank = new Tank(1, 1);
         GameWorld world = new GameWorld(List.of(tank), new LevelBounds(10, 8), List.of());

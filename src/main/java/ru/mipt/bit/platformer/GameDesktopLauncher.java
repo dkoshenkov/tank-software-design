@@ -4,6 +4,8 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Graphics;
+import org.lwjgl.glfw.GLFW;
 import ru.mipt.bit.platformer.app.GameSceneBuilder;
 import ru.mipt.bit.platformer.app.GameSession;
 import ru.mipt.bit.platformer.level.FileLevelGenerator;
@@ -22,13 +24,28 @@ public class GameDesktopLauncher extends ApplicationAdapter {
 
     @Override
     public void create() {
-        LevelGenerator generator;
+        session = new GameSceneBuilder(createLevelGenerator()).build(Gdx.input);
+        preserveWindowAspectRatio();
+    }
+
+    private LevelGenerator createLevelGenerator() {
         if (levelPath.equals("random")) {
-            generator = new RandomLevelGenerator(10, 8, new Random());
-        } else {
-            generator = new FileLevelGenerator(Gdx.files.internal(levelPath));
+            return new RandomLevelGenerator(10, 8, new Random());
         }
-        session = new GameSceneBuilder(generator).build(Gdx.input);
+        return new FileLevelGenerator(Gdx.files.internal(levelPath));
+    }
+
+    private void preserveWindowAspectRatio() {
+        Lwjgl3Graphics graphics = (Lwjgl3Graphics) Gdx.graphics;
+        GLFW.glfwSetWindowAspectRatio(
+                graphics.getWindow().getWindowHandle(),
+                graphics.getWidth(), graphics.getHeight()
+        );
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        Gdx.gl.glViewport(0, 0, Gdx.graphics.getBackBufferWidth(), Gdx.graphics.getBackBufferHeight());
     }
 
     @Override
@@ -45,7 +62,6 @@ public class GameDesktopLauncher extends ApplicationAdapter {
 
     public static void main(String[] args) {
         Lwjgl3ApplicationConfiguration windowConfig = new Lwjgl3ApplicationConfiguration();
-        windowConfig.setWindowedMode(1280, 1024);
         String levelPath = args.length == 0 ? "level.txt" : args[0];
         new Lwjgl3Application(new GameDesktopLauncher(levelPath), windowConfig);
     }

@@ -50,9 +50,12 @@ public class TankControlIntegrationTest {
         GameWorld world = new GameWorld(new java.util.ArrayList<>(tanks), new LevelBounds(3, 3),
                 new java.util.ArrayList<>(tanks));
         List<TankControlStrategy> controls = List.of(
-                new RandomTankController(tanks.get(0), world::canMoveTo, new Random(1), world::add),
-                new RandomTankController(tanks.get(1), world::canMoveTo, new Random(2), world::add),
-                new RandomTankController(tanks.get(2), world::canMoveTo, new Random(3), world::add));
+                new RandomTankController(tanks.get(0), world::canMoveTo, new Random(1), world::add,
+                        Runnable::run, world::getElapsedSeconds),
+                new RandomTankController(tanks.get(1), world::canMoveTo, new Random(2), world::add,
+                        Runnable::run, world::getElapsedSeconds),
+                new RandomTankController(tanks.get(2), world::canMoveTo, new Random(3), world::add,
+                        Runnable::run, world::getElapsedSeconds));
         boolean moved = false;
         for (int frame = 0; frame < 500; frame++) {
             for (TankControlStrategy control : controls) {

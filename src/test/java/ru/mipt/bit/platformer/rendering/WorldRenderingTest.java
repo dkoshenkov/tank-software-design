@@ -8,6 +8,7 @@ import ru.mipt.bit.platformer.model.TilePosition;
 import ru.mipt.bit.platformer.model.level.LevelBounds;
 import ru.mipt.bit.platformer.model.tank.Tank;
 import ru.mipt.bit.platformer.world.GameWorld;
+import ru.mipt.bit.platformer.world.CombatSystem;
 
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ public class WorldRenderingTest {
         GameWorldRenderer renderer = new GameWorldRenderer(batch, () -> { },
                 object -> ignored -> drawn.add(object));
         GameWorld world = new GameWorld(new LevelBounds(5, 2));
+        new CombatSystem(world);
         world.addListener(renderer);
         Tank player = new Tank(0, 0);
         Tank target = new Tank(3, 0, 0.4f, 0);

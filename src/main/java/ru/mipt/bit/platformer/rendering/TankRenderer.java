@@ -2,13 +2,10 @@ package ru.mipt.bit.platformer.rendering;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Rectangle;
 import ru.mipt.bit.platformer.model.MotionState;
 
 public class TankRenderer implements ObjectView {
-    private static final float NATIVE_SCALE = 1f;
-
     private final MotionState tank;
     private final TextureRegion textureRegion;
     private final Rectangle renderBounds;
@@ -23,8 +20,13 @@ public class TankRenderer implements ObjectView {
 
     @Override
     public void render(Batch batch) {
-        updateRenderBounds();
+        positionTank();
         drawTank(batch);
+    }
+
+    private void positionTank() {
+        tilePositioning.interpolateCenter(renderBounds, tank.getTileCoordinates(),
+                tank.getDestinationTileCoordinates(), tank.getMovementProgress());
     }
 
     private void drawTank(Batch batch) {
@@ -34,24 +36,12 @@ public class TankRenderer implements ObjectView {
                 textureRegion,
                 renderBounds.x,
                 renderBounds.y,
-                rotationOrigin(width),
-                rotationOrigin(height),
+                width / 2f,
+                height / 2f,
                 width,
                 height,
-                NATIVE_SCALE,
-                NATIVE_SCALE,
+                1f,
+                1f,
                 tank.getRotationDegrees());
-    }
-
-    private float rotationOrigin(float size) {
-        return size / 2f;
-    }
-
-    private void updateRenderBounds() {
-        GridPoint2 from = tank.getTileCoordinates();
-        GridPoint2 to = tank.getDestinationTileCoordinates();
-        float progress = tank.getMovementProgress();
-
-        tilePositioning.interpolateCenter(renderBounds, from, to, progress);
     }
 }

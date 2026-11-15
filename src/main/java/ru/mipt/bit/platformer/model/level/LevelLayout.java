@@ -13,6 +13,15 @@ public final class LevelLayout {
 
     public LevelLayout(int width, int height, GridPoint2 playerPosition, List<GridPoint2> treePositions) {
         LevelBounds bounds = new LevelBounds(width, height);
+        validatePositions(bounds, playerPosition, treePositions);
+        this.width = width;
+        this.height = height;
+        this.playerPosition = new GridPoint2(playerPosition);
+        this.treePositions = copyPositions(treePositions);
+    }
+
+    private static void validatePositions(LevelBounds bounds, GridPoint2 playerPosition,
+                                          List<GridPoint2> treePositions) {
         if (!bounds.containsTile(playerPosition)) {
             throw new IllegalArgumentException("Player must be inside the level");
         }
@@ -21,10 +30,6 @@ public final class LevelLayout {
                 throw new IllegalArgumentException("Tree must be inside the level and outside the player tile");
             }
         }
-        this.width = width;
-        this.height = height;
-        this.playerPosition = new GridPoint2(playerPosition);
-        this.treePositions = copyPositions(treePositions);
     }
 
     public int getWidth() {

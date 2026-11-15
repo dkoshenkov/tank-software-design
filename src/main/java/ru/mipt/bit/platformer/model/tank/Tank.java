@@ -16,8 +16,11 @@ public class Tank implements Updatable, MotionState, TileBlocker {
     private static final float MOVEMENT_START = 0f;
     private static final float MOVEMENT_COMPLETE = 1f;
     private static final float DEFAULT_MOVE_DURATION_SECONDS = 0.4f;
+    private static final int DEFAULT_HEALTH = 100;
+    private static final int DEFAULT_BULLET_DAMAGE = 30;
 
     private int health;
+    private final int maxHealth;
     private final int bulletDamage;
     private final GridPoint2 tileCoordinates;
     private final GridPoint2 destinationTileCoordinates;
@@ -30,28 +33,33 @@ public class Tank implements Updatable, MotionState, TileBlocker {
     }
 
     public Tank(int tileX, int tileY, float moveDurationSeconds) {
-        this(tileX, tileY, moveDurationSeconds, 2);
+        this(tileX, tileY, moveDurationSeconds, DEFAULT_HEALTH);
     }
 
     public Tank(int tileX, int tileY, float moveDurationSeconds, int health) {
-        this(tileX, tileY, moveDurationSeconds, health, 1);
+        this(tileX, tileY, moveDurationSeconds, health, DEFAULT_BULLET_DAMAGE);
     }
 
     public Tank(int tileX, int tileY, float moveDurationSeconds, int health, int bulletDamage) {
-        if (bulletDamage <= 0) {
-            throw new IllegalArgumentException("Bullet damage must be positive");
-        }
+        validateParameters(moveDurationSeconds, health, bulletDamage);
         this.bulletDamage = bulletDamage;
-        if (health < 0) {
-            throw new IllegalArgumentException("Initial health must not be negative");
-        }
         this.health = health;
-        if (!Float.isFinite(moveDurationSeconds) || moveDurationSeconds <= 0f) {
-            throw new IllegalArgumentException("Movement duration must be positive and finite");
-        }
+        this.maxHealth = health;
         tileCoordinates = new GridPoint2(tileX, tileY);
         destinationTileCoordinates = new GridPoint2(tileCoordinates);
         this.moveDurationSeconds = moveDurationSeconds;
+    }
+
+    private static void validateParameters(float moveDurationSeconds, int health, int bulletDamage) {
+        if (bulletDamage <= 0) {
+            throw new IllegalArgumentException("Bullet damage must be positive");
+        }
+        if (health < 0) {
+            throw new IllegalArgumentException("Initial health must not be negative");
+        }
+        if (!Float.isFinite(moveDurationSeconds) || moveDurationSeconds <= 0f) {
+            throw new IllegalArgumentException("Movement duration must be positive and finite");
+        }
     }
 
     public void tryMove(Direction direction, Predicate<GridPoint2> canMoveTo) {
@@ -82,6 +90,10 @@ public class Tank implements Updatable, MotionState, TileBlocker {
 
     public int getHealth() {
         return health;
+    }
+
+    public int getMaxHealth() {
+        return maxHealth;
     }
 
     public boolean isDestroyed() {

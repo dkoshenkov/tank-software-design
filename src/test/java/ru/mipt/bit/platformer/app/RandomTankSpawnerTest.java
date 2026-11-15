@@ -1,7 +1,9 @@
 package ru.mipt.bit.platformer.app;
 
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.math.GridPoint2;
 import org.junit.Test;
+import ru.mipt.bit.platformer.level.FileLevelGenerator;
 import ru.mipt.bit.platformer.model.level.LevelLayout;
 import ru.mipt.bit.platformer.model.tank.Tank;
 
@@ -31,11 +33,11 @@ public class RandomTankSpawnerTest {
         }
     }
 
-    @Test public void usesAllAvailableCellsWhenRequestedCountExceedsCapacity() {
-        LevelLayout layout = new LevelLayout(3, 1, new GridPoint2(0, 0), List.of(new GridPoint2(1, 0)));
+    @Test public void usesOnlyReachableCellsWhenRequestedCountExceedsCapacity() {
+        LevelLayout layout = new LevelLayout(4, 1, new GridPoint2(0, 0), List.of(new GridPoint2(2, 0)));
         List<Tank> tanks = spawner.spawn(layout, 3, new Random(0));
         assertEquals(1, tanks.size());
-        assertEquals(new GridPoint2(2, 0), tanks.get(0).getTileCoordinates());
+        assertEquals(new GridPoint2(1, 0), tanks.get(0).getTileCoordinates());
         assertTrue(spawner.spawn(layout, 0, new Random(0)).isEmpty());
         LevelLayout full = new LevelLayout(1, 1, new GridPoint2(0, 0), List.of());
         assertTrue(spawner.spawn(full, 3, new Random(0)).isEmpty());
@@ -45,6 +47,14 @@ public class RandomTankSpawnerTest {
         LevelLayout layout = new LevelLayout(10, 8, new GridPoint2(0, 0), List.of());
         List<GridPoint2> first = positions(spawner.spawn(layout, 3, new Random(5)));
         assertEquals(first, positions(spawner.spawn(layout, 3, new Random(5))));
+    }
+
+    @Test public void playerCanReachEveryOpenTileOnTheDefaultLevel() {
+        LevelLayout layout = new FileLevelGenerator(new FileHandle("src/main/resources/level.txt")).generate();
+        int openTiles = layout.getWidth() * layout.getHeight() - layout.getTreePositions().size();
+        List<GridPoint2> reachable = positions(spawner.spawn(layout, openTiles, new Random(0)));
+        assertEquals(openTiles - 1, reachable.size());
+        assertTrue(reachable.contains(new GridPoint2(9, 5)));
     }
 
     @Test

@@ -12,25 +12,34 @@ public class LevelMapAssets implements Disposable {
     public LevelMapAssets(String pathToMap, int width, int height) {
         tiledMap = new TmxMapLoader().load(pathToMap);
         try {
-            TiledMapTileLayer sourceLayer = (TiledMapTileLayer) tiledMap.getLayers().get(0);
-            groundLayer = repeatGroundLayer(sourceLayer, width, height);
-            tiledMap.getLayers().remove(0);
-            tiledMap.getLayers().add(groundLayer);
+            groundLayer = replaceGroundLayer(width, height);
         } catch (RuntimeException | Error failure) {
             disposeAfterLoadFailure(failure);
             throw failure;
         }
     }
 
+    private TiledMapTileLayer replaceGroundLayer(int width, int height) {
+        TiledMapTileLayer sourceLayer = (TiledMapTileLayer) tiledMap.getLayers().get(0);
+        TiledMapTileLayer layer = repeatGroundLayer(sourceLayer, width, height);
+        tiledMap.getLayers().remove(0);
+        tiledMap.getLayers().add(layer);
+        return layer;
+    }
+
     private TiledMapTileLayer repeatGroundLayer(TiledMapTileLayer source, int width, int height) {
         TiledMapTileLayer layer = new TiledMapTileLayer(width, height,
                 (int) source.getTileWidth(), (int) source.getTileHeight());
         for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                layer.setCell(x, y, source.getCell(x % source.getWidth(), y % source.getHeight()));
-            }
+            repeatGroundRow(source, layer, y, width);
         }
         return layer;
+    }
+
+    private void repeatGroundRow(TiledMapTileLayer source, TiledMapTileLayer layer, int y, int width) {
+        for (int x = 0; x < width; x++) {
+            layer.setCell(x, y, source.getCell(x % source.getWidth(), y % source.getHeight()));
+        }
     }
 
     private void disposeAfterLoadFailure(Throwable failure) {
